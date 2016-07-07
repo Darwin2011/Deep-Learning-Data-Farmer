@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<Docker>
+    <DockerInfo name="GPUMode" value="GPU"/>
+    <DockerInfo name="CudeVersion" value="Cude"/>
+    <DockerInfo name="CudnnVersion" value="Cudnn"/>
+    <DockerInfo name="TopologyMode" value="Topology"/>
+    <DockerInfo name="Framework" value="Framework"/>
+    <DockerInfo name="BatchSize" value="BatchSize"/>
+    <DockerInfo name="DataSet" value="DataSet"/>
+</Docker>
