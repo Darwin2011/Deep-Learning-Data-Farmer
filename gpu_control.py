@@ -89,6 +89,33 @@ class GPUDevice(object):
         application_memory_freq = self.get_memory_frequency(self.__class__.graphics_mode.APPLICATION)
         return (application_core_freq == core_frequency) and (memory_frequency == application_memory_freq)
 
+
+    def get_autoboost(self):
+        """
+            get autoboost Status
+            Returns:
+                True if autoboost on else False        
+        """
+        command = "nvidia-smi -q -i %d | grep -i 'Auto Boost' | head -n 1 | awk '{print $NF}'" % (self.gpuid, )
+        fp = os.popen(command)
+        results = fp.read()
+        return True if "On" in results else False
+         
+
+    def set_autoboost(self, mode):
+        """
+            set autoboost 
+            Args:
+                Mode: int, 1 as autoboost on and 0 as autoboost off
+            Returns:
+                True when successfully setting the clocks  
+        """
+        command = "nvidia-smi -i %d --auto-boost-default=%d" % (self.gpuid, mode)
+        command = self.sudo_wrapper(command)
+        os.system(command)
+        return True if self.get_autoboost() == mode else False
+        
+
 if __name__ == '__main__':
     gpu = GPUDevice(0)
     graphics_mode = gpu.__class__.graphics_mode 
@@ -96,3 +123,5 @@ if __name__ == '__main__':
     print(gpu.set_frequency(1002, 3505))
     print(gpu.get_core_frequency(graphics_mode.INSTANT))
     print(gpu.get_memory_frequency(graphics_mode.INSTANT))
+    print(gpu.set_autoboost(1))
+    print(gpu.get_autoboost())
