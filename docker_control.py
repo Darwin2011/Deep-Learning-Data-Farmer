@@ -37,7 +37,7 @@ def Singleton(cls, *args, **kw):
         return instances[cls]
     return _singleton
 
-@Singleton
+#@Singleton
 class Docker_Monitor(object):
     """
         
@@ -86,10 +86,10 @@ class Docker_Monitor(object):
             Paratmeter : the parser who have the flag value
         """
         result_index     = -1
-        looking_for_item = [xmlParser.getCudeVersionString(),   \
-                            xmlParser.getCudnnVersionString(),  \
-                            xmlParser.is_tenseflow_installed(), \
-                            xmlParser.is_caffe_installed()]
+        looking_for_item = [parser.getCudeVersionString(),   \
+                            parser.getCudnnVersionString(),  \
+                            parser.is_tenseflow_installed(), \
+                            parser.is_caffe_installed()]
 
         for index, image in enumerate(self.images):
 
@@ -112,4 +112,5 @@ if __name__ == "__main__":
     parser = XMLParser("DockerConfig.xml")
     parser.parse()
     index = dm.get_image_index(parser)
+    print(index)
     print (dm.get_image(index).__dict__)

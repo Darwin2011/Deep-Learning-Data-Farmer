@@ -116,6 +116,9 @@ class GPUDevice(object):
         return True if self.get_autoboost() == mode else False
         
 
+    def get_running_process(self):
+        pass    
+
 if __name__ == '__main__':
     gpu = GPUDevice(0)
     graphics_mode = gpu.__class__.graphics_mode 

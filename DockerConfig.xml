@@ -8,7 +8,7 @@
     <DockerInfo name="TopologyMode"         value="Topology"/>
     <DockerInfo name="Framework"            value="Framework"/>
     <DockerInfo name="BatchSize"            value="BatchSize"/>
-    <DockerInfo name="TensorflowInstalled"  value="0"/>
+    <DockerInfo name="TensorflowInstalled"  value="1"/>
     <DockerInfo name="CaffeInstalled"       value="0"/>
     <DockerInfo name="BatchSize"            value="BatchSize"/>
     <DockerInfo name="DataSet"              value="DataSet"/>
