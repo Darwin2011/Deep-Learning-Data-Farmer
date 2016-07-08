@@ -1,6 +1,8 @@
 #!usr/bin/env python
 
 import xml.etree.ElementTree as ET
+import farmer_log
+from os import path
 
 class XMLParser:
     """
@@ -27,6 +29,10 @@ class XMLParser:
         self._dataSet             = ""
 
     def parse(self):
+        if not path.isfile(self._file_path):
+            farmer_log.error("The xml file doesn't exist.")
+            return
+
         tree = ET.parse(self._file_path)
         root = tree.getroot()
         self._gpu_mode            = getAttr(root, "GPUMode")
@@ -64,6 +70,9 @@ def getAttr(tree, name):
     return elem[0].attrib["value"]
 
 if __name__ == "__main__":
+    parser = XMLParser("XXX")
+    parser.parse()
+
     parser = XMLParser("DockerConfig.xml")
     parser.parse()
     print parser.getGPUMode() + "\n" \
@@ -73,3 +82,4 @@ if __name__ == "__main__":
     + parser.getFramework() + '\n' \
     + parser.getBatchSize() + '\n' \
     + parser.getDataSet() + '\n'
+
