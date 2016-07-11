@@ -11,8 +11,9 @@ class Workload(object):
 class Caffe_Workload(Workload):
 
     build_script = "scripts/build_caffe.sh"
-    caffe_bench = "/home/caffe/caffe_bench"
-    caffe_bench_run_script = "/home/caffe/caffe_bench/run_single.sh"
+    run_script = "scripts/caffe_bench"
+    docker_caffe_bench = "/home/caffe/caffe_bench"
+    docker_run_script = "/home/caffe/caffe_bench/run_single.sh"
     
 
     topology = { \
@@ -48,8 +49,8 @@ class Caffe_Workload(Workload):
     def run(self, topology, iterations, batch_size, gpuid, caffe_source):
         result = {}
         if topology in self.__class__.topology.keys():
-            template = os.path.join(self.__class__.caffe_bench, self.__class__.middle_dir , self.__class__.topology[topology])
-            command = "%s %s %d %d %d %s" % (self.__class__.caffe_bench_run_script, template, batch_size, iterations, gpuid, caffe_source)
+            template = os.path.join(self.__class__.docker_caffe_bench, self.__class__.middle_dir , self.__class__.topology[topology])
+            command = "%s %s %d %d %d %s" % (self.__class__.docker_run_script, template, batch_size, iterations, gpuid, caffe_source)
             command = self.sudo_docker_wrapper(command)
             fp = os.popen(command)
             for line in fp:
