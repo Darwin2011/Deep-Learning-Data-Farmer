@@ -30,17 +30,21 @@ class GPUDevice(object):
             ...   
     """
     graphics_mode = Enum("INSTANT", "APPLICATION", "APPLICATION_DEFAULT", "MAX")
-    sm_free_threshold = 0.03
+    sm_free_threshold = 0.02
     memory_free_threshold = 0.03
     
-    def __init__(self, gpuid):
+    def __init__(self, hostname, gpuid):
         """
             Args:
                 GPUID: gpu device N.O. as gpuid
         """
+        self.hostname = hostname 
         self.gpuid = gpuid
+        self.gpu_model = None
+        self.gpu_uuid = None
         self.processes = []
-         
+        self.blocked = False     
+        self.get_gpu_model()
 
     def sudo_wrapper(self, command):
         """
@@ -59,12 +63,14 @@ class GPUDevice(object):
         fp = os.popen(command)
         for line in fp:
             line = line.strip()
-            m = re.match("GPU(.*)\:(.*)\(UUID.*\)", line)
+            m = re.match("GPU(.*)\:(.*)\(UUID:(.*)\)", line)
             gpuid = int(m.group(1))
             gpu_model = m.group(2)
+            gpu_uuid = m.group(3)
             if gpuid == self.gpuid:
-                self.gpu_model = gpu_model
-                return self.gpu_model
+                self.gpu_model = gpu_model.strip()
+                self.gpu_uuid = gpu_uuid.strip()
+                return (self.gpu_model, self.gpu_uuid) 
         return None
  
     def get_core_frequency(self, mode):
@@ -199,10 +205,38 @@ class GPUDevice(object):
             gp.set_info(pid, command, sm, mem)
             self.processes.append(gp)
         return self.processes 
-    
+   
+
+class GPUMonitor(object):
+
+    def __new__(cls):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(GPUMonitor, cls).__new__(cls)
+        return cls.instance 
+
+    def __init__(self):
+        self.gpulists = []
+        self.gpu_models_set = set()
+        self.gpu_uuid_set = set()
+        
+    def has_gpu(self, gpu):
+        return gpu.gpu_uuid in self.gpu_uuid_set
+
+    def add_gpu(self, hostname, gpuid):
+        gpu = GPUDevice(hostname, gpuid)
+        if self.has_gpu(gpu):
+            pass
+        else:
+            self.gpulists.append(gpu)
+            self.gpu_models_set = set([g.gpu_model for g in self.gpulists])
+            self.gpu_uuid_set = set([g.gpu_uuid for g in self.gpulists])
+        
+    def del_gpu(self, uuid):
+        pass 
+
 
 if __name__ == '__main__':
-    gpu = GPUDevice(0)
+    gpu = GPUDevice("127.0.0.1", 0)
     graphics_mode = gpu.__class__.graphics_mode 
     print(gpu.set_persistant_mode(1))
     print(gpu.set_frequency(1002, 3505))
@@ -213,4 +247,8 @@ if __name__ == '__main__':
     print(gpu.get_utlization())
     print(gpu.is_gpu_free())
     print(gpu.get_running_process())
-    gpu.get_gpu_model()
+    print(gpu.get_gpu_model())
+    gm = GPUMonitor()
+    gm.add_gpu("127.0.0.1", 0)
+    print(gm.gpu_uuid_set)
+    print(gm.gpu_models_set)

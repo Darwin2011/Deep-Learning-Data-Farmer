@@ -29,19 +29,15 @@ class Docker_Image(object):
         self.caffe_installed = caffe_installed
         self.tensorflow_installed = tensorflow_installed
         
-def Singleton(cls, *args, **kw):
-    instances = {}
-    def _singleton():
-        if cls not in instances:
-            instances[cls] = cls(*args, **kw)
-        return instances[cls]
-    return _singleton
-
-#@Singleton
 class Docker_Monitor(object):
     """
         
     """
+    def __new__(cls):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(Singleton, cls).__new__(cls)
+        return cls.instance
+
     def __init__(self, host, user, passwd, database, table):
         self.images = []
         self.db_connection = \
