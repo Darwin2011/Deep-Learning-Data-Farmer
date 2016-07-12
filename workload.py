@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import os
 import re
+import sys
+
 class Workload(object):
    
     def __init__(self, container):
@@ -64,6 +66,7 @@ class Caffe_Workload(Workload):
 
 
 if __name__ == "__main__":
-    cw = Caffe_Workload('7dcde78eef7c')
+    cw = Caffe_Workload('a68ebcab3ad5')
+    cw.copy()
     result = cw.run("alexnet_group1", 100, 256, 0, "nvidia")
     print(result)

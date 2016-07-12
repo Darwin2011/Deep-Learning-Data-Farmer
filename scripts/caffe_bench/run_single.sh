@@ -1,11 +1,13 @@
 #!/bin/bash
 set -x
 
+cd /home/caffe/caffe_bench
+
 template_name=$1
 batch_size=$2
 iterations=$3
 gpuid=$4
-template_filename=`echo $template_name | awk -F/ '{print $2}'`
+template_filename=`echo $template_name | awk -F/ '{print $NF}'`
 
 
 
