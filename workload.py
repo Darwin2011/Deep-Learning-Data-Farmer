@@ -49,6 +49,18 @@ class Caffe_Workload(Workload):
         pass
 
     def run(self, topology, iterations, batch_size, gpuid, caffe_source):
+        """
+            
+	        Args:
+                Topology: Deep Neural Network Structure 
+                iterations: how many iterations in the test
+                batch size: batch size in one training or classification procedure
+                gpuid: GPUID start from 0
+                caffe_source: "bvlc" or "nvidia"
+            Returns:
+                ret performance metrics 
+        """
+	
         result = {}
         if topology in self.__class__.topology.keys():
             template = os.path.join(self.__class__.docker_caffe_bench, self.__class__.middle_dir , self.__class__.topology[topology])
@@ -66,7 +78,7 @@ class Caffe_Workload(Workload):
 
 
 if __name__ == "__main__":
-    cw = Caffe_Workload('a68ebcab3ad5')
+    cw = Caffe_Workload(sys.argv[1])
     cw.copy()
-    result = cw.run("alexnet_group1", 100, 256, 0, "nvidia")
+    result = cw.run("alexnet_group1", 100, 256, 1, "nvidia")
     print(result)
