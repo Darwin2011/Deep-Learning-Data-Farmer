@@ -24,7 +24,7 @@ class XMLParser:
         self._cude_version        = ""
         self._cude_version_string = ""
         self._cudnn_version       = ""
-        self._cudnn_version       = ""
+        self._cudnn_version_string = ""
         self._topology_model_type = ""
         self._framework           = ""
         self._batch_size          = ""

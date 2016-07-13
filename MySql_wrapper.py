@@ -34,11 +34,44 @@ class Mysql_wrapper():
             farmer_log.info(result)
         conn.close()
 
+    def has_image_in_db_by_rep_tag(self, repository, tag):
+        result = False
+        try:
+            use_table = "USE animations;"
+            seach_image = "SELECT repository, tag FROM docker_images WHERE REPOSITORY = '%s' AND TAG = '%s'" % (repository, tag)
+            sql_command = use_table + seach_image
+            farmer_log.debug(sql_command)
+            conn = self.db_connection.cursor()
+            conn.execute(seach_image)
+            farmer_log.debug(conn.rowcount)
+            if (-1 != conn.rowcount) and (0 != conn.rowcount):
+                result = True
+        except Exception as e:
+            farmer_log.error("has_image_in_db_by_rep_tag" + e.message)
+            conn.rollback()
+        finally:
+            conn.close()
+        return result
 
-    def get_detailed_info_from_db(self, table, repository, tag):
-        #TODO
-        pass
+    def has_image_in_db_by_cuda_cuddn(self, cuda_string, cuddn_string):
+        result = False
+        try:
+            use_table = "USE animations;"
+            seach_image = "SELECT repository, tag FROM docker_images WHERE CUDA_VERSION_STRING = '%s' AND CUDNN_VERSION_STRING = '%s'" % (cuda_string, cuddn_string)
+            sql_command = use_table + seach_image
+            farmer_log.debug(sql_command)
+            conn = self.db_connection.cursor()
+            conn.execute(seach_image)
+            farmer_log.debug(conn.rowcount)
+            if (-1 != conn.rowcount) and (0 != conn.rowcount):
+                result = True
+        except Exception as e:
+            farmer_log.error("has_image_in_db_by_cuda_cuddn" + e.message)
+        finally:
+            conn.close()
+        return result
 
 if __name__ == "__main__":
     wrapper = Mysql_wrapper("localhost", "root", "RACQ4F6c")
     wrapper.init_database()
+    print wrapper.has_image_in_db("nvidia/cuda", "7.5-cudnn5.1rc-devel-ubuntu14.04-caffe-pcs")
