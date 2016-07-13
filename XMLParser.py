@@ -99,8 +99,8 @@ if __name__ == "__main__":
     parser = XMLParser("DockerConfig.xml")
     parser.parse()
     print parser.getGPUMode() + "\n" \
-    + parser.getCudeVersion() + '\n' \
-    + parser.getCudnnVersion() + '\n' \
+    + str(parser.getCudeVersion()) + '\n' \
+    + str(parser.getCudnnVersion()) + '\n' \
     + parser.getCudeVersionString() + '\n' \
     + parser.getCudnnVersionString() + '\n' \
     + parser.getTopologyModeType() + '\n' \
