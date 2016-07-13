@@ -3,6 +3,7 @@ import os
 import re
 import sys
 import pandas
+from server.server_start import result_content_html
 class Workload(object):
    
     def __init__(self, container):
