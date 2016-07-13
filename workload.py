@@ -3,6 +3,7 @@ import os
 import re
 import sys
 import pandas
+from server.server_start import result_content_html
 class Workload(object):
    
     def __init__(self, container):
@@ -98,4 +99,4 @@ if __name__ == '__main__':
     cols = df.columns.tolist()
     cols = ['topology', 'source', 'batch_size', 'iterations', 'score', 'training images per second']
     df = df[cols]
-    df.to_html(sys.stdout, index = False)
+    df.to_html(result_content_html, index = False)
