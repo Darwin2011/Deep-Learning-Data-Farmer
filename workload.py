@@ -81,6 +81,21 @@ class Caffe_Workload(Workload):
                     result['training images per second'] = float(line.split(':')[-1])
             return result
 
+    def merge_result(self, result1, result2):
+        if result1['topology'] == result2['topology'] and \
+            result1['batch_size'] == result2['batch_size'] and \
+            result1['iterations'] == result2['iterations'] and \
+            result1['source'] != result2['source'] :
+            result1[result1['source'] + ' score'] = result1['score']
+            result1[result1['source'] + ' training images per second'] = result1['training images per second']
+            result2[result2['source'] + ' score'] = result2['score']
+            result2[result2['source'] + ' training images per second'] = result2['training images per second']
+            updated_result = result1.copy()
+            updated_result.update(result2)
+            del updated_result['source']
+            return updated_result    
+        return None
+
 
 if __name__ == '__main__':
     cw = Caffe_Workload(sys.argv[1])
@@ -91,12 +106,13 @@ if __name__ == '__main__':
     for topology in ('alexnet_group1', 'alexnet_group2', 'googlenet', 'vgg_19'):
         bzs = topology_bz_maps[topology]
         for bz in bzs:
-            result = cw.run(topology, iterations, bz, 0, 'upstream')
-            results.append(result)
-            result = cw.run(topology, iterations, bz, 0, 'nvidia')
-            results.append(result)
+            result1 = cw.run(topology, iterations, bz, 0, 'upstream')
+            result2 = cw.run(topology, iterations, bz, 0, 'nvidia')
+            updated_result = cw.merge_result(result1, result2)
+            if updated_result is not None:
+                results.append(updated_result)
     df = pandas.DataFrame(results)
     cols = df.columns.tolist()
     cols = ['topology', 'source', 'batch_size', 'iterations', 'score', 'training images per second']
     df = df[cols]
-    df.to_html(result_content_html, index = False)
+    df.to_csv(sys.stdout)
