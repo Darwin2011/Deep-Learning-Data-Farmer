@@ -7,32 +7,32 @@ from cmd_generator import *
 from workload import Caffe_Workload
 import pandas
 import cmd_generator
+from docker_control import Docker_Monitor
 
 class GPU_Scheduler:
 
     def __init__(self):
         self.parser = XMLParser("DockerConfig.xml")
         self.sql_wrapper = Mysql_wrapper("localhost", "root", "RACQ4F6c")
-        self.sql_wrapper.init_database()
+        self.docker_control = Docker_Monitor()
 
     def prepare_env(self):
-        if self.has_images_existed():
-            container_id = cmd_generator.get_random_container()
-            run_docker_command = cmd_generator.run_docker(container_id, )
-            #TODO
-        else:
-            self.build_image()
-
-
-    def has_images_existed(self):
-        cudeString = self.parser.getCudeVersionString()
-        cudnnString = self.parser.getCudnnVersionString()
-        return self.sql_wrapper.has_image_in_db_by_cuda_cuddn(cudeString, cudnnString)
+        self.parser.parse()
+        self.sql_wrapper.init_database()
+        self.docker_control.get_local_images(self.sql_wrapper)
 
     def build_image(self):
         pass
 
-    def test_scheduler(self, container):
+    def test_scheduler(self):
+        index = self.docker_control.get_image_index(self.parser)
+        if -1 == index:
+            # TODO
+            self.build_image()
+            index = self.docker_control.get_image_index(self.parser)
+        image = self.docker_control.get_image(index)
+        container = get_random_container()
+        execute(run_docker(container, image.repository, image.tag))
         test_workload = Caffe_Workload(container)
         test_workload.copy()
         results = []
@@ -46,9 +46,10 @@ class GPU_Scheduler:
                 result = test_workload.run(topology, iterations, bz, 0, 'nvidia')
                 results.append(result)
         df = pandas.DataFrame(results)
+        execute(kill_docker(container))
 
 if __name__ == "__main__":
     scheduler = GPU_Scheduler()
     scheduler.build_image()
-    scheduler.has_images_existed()
     scheduler.prepare_env()
+    scheduler.test_scheduler()

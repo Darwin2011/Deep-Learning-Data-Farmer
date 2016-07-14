@@ -8,9 +8,11 @@ import datetime
 import random
 
 DOCKER_COMMAND = "nvidia-docker"
+#DOCKER_COMMAND = "docker"
 
 def sudo_wrapper(command):
     return "sudo " + command
+    #return command
 
 def load_image(image_path):
     result = sudo_wrapper("%s load -i " % DOCKER_COMMAND + image_path)
@@ -27,9 +29,11 @@ def run_docker(container, repository, tag):
     farmer_log.info(result)
     return result
 
+def kill_docker(container):
+    result = sudo_wrapper("%s kill %s" % (DOCKER_COMMAND, container))
+
 def execute(command):
     output = os.popen(command)
-    farmer_log(output.read())
 
 
 def get_random_container():

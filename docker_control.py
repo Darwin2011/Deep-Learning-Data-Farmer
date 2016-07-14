@@ -2,6 +2,7 @@
 
 import os
 import re
+from MySql_wrapper import Mysql_wrapper
 from XMLParser import XMLParser
 
 
@@ -37,11 +38,13 @@ class Docker_Monitor(object):
             cls.instance = super(Docker_Monitor, cls).__new__(cls)
         return cls.instance
 
-    def __init__(self, host, user, passwd):
+    def __init__(self):
         self.images = []
 
     def get_local_images(self, sql_wrapper):
+        del self.images[:]
         command = "sudo docker images | grep -v none | grep -vi REPOSITORY"
+        command = "docker images | grep -v none | grep -vi REPOSITORY"
         fp = os.popen(command)
         for line in fp:
             (repository, tag, image_id, created_time, size) = re.split(' {3,}', line.strip())
@@ -55,7 +58,7 @@ class Docker_Monitor(object):
         fp.close()
 
     def get_image(self, index):
-        if index < 0:
+        if index < 0 or index > len(self.images):
             return
         return self.images[index]
 
@@ -87,7 +90,7 @@ class Docker_Monitor(object):
 
 if __name__ == "__main__":
     dm = Docker_Monitor('localhost', 'root', 'tracing')
-    dm.get_local_images()
+    dm.get_local_images(Mysql_wrapper("localhost", "root", "RACQ4F6c"))
     print(dm.images[0].__dict__)
     parser = XMLParser("DockerConfig.xml")
     parser.parse()

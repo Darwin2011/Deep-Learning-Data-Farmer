@@ -4,6 +4,7 @@ import re
 import sys
 import pandas
 from server.server_start import result_content_html
+from cmd_generator import *
 class Workload(object):
    
     def __init__(self, container):
@@ -32,9 +33,6 @@ class Caffe_Workload(Workload):
     def __init__(self, container):
         super(Caffe_Workload, self).__init__(container)
 
-    def sudo_wrapper(self, command):
-        return 'sudo ' + command
-
     def sudo_docker_wrapper(self, command):
         return 'sudo docker exec %s %s' % (self.container, command)
 
@@ -43,7 +41,7 @@ class Caffe_Workload(Workload):
 
     def copy(self):
         command = 'docker cp %s %s:/home/caffe/' % (self.__class__.run_script, self.container)
-        command = self.sudo_wrapper(command)
+        command = sudo_wrapper(command)
         os.popen(command)
          
     def build_in_docker(self):

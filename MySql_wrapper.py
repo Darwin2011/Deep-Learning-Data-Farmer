@@ -42,13 +42,15 @@ class Mysql_wrapper():
         cursor = self.connection.cursor()
         try:
             use_table = "USE animations;"
-            seach_image = "SELECT repository, tag FROM docker_images WHERE REPOSITORY = '%s' AND TAG = '%s'" % (repository, tag)
+            seach_image = "SELECT repository, tag FROM docker_images WHERE REPOSITORY = '%s' AND TAG = '%s';" % (repository, tag)
             sql_command = use_table + seach_image
             farmer_log.debug(sql_command)
             cursor.execute(seach_image)
             farmer_log.debug(cursor.rowcount)
             if (-1 != cursor.rowcount) and (0 != cursor.rowcount):
                 result = True
+            output = cursor.fetchall()
+            farmer_log.info(output)
         except Exception as e:
             farmer_log.error("has_image_in_db_by_rep_tag:" + e.message)
             cursor.rollback()
@@ -57,7 +59,6 @@ class Mysql_wrapper():
         return result
 
     def inert_item_in_docker_images_table(self, repository, tag, cuda_version, cuda_version_str, cudnn_version, cudnn_version_str, have_tensorflow, have_caffe):
-
         cursor = self.connection.cursor()
         try:
             use_table = "USE animations;"
@@ -71,6 +72,8 @@ class Mysql_wrapper():
             farmer_log.debug(sql_command)
             cursor.execute(inserted_sql)
             self.connection.commit()
+            output = cursor.fetchall()
+            farmer_log.info(output)
         except Exception as e:
             self.connection.rollback()
             farmer_log.error("inert_item_in_docker_images_table:" + e.message)
@@ -82,14 +85,17 @@ class Mysql_wrapper():
         cursor = self.connection.cursor()
         try:
             use_table = "USE animations;"
-            seach_image = "SELECT repository, tag FROM docker_images WHERE CUDA_VERSION_STRING = '%s' AND CUDNN_VERSION_STRING = '%s'" % (cuda_string, cuddn_string)
+            seach_image = "SELECT repository, tag FROM docker_images WHERE CUDA_VERSION_STRING = '%s' AND CUDNN_VERSION_STRING = '%s';" % (cuda_string, cuddn_string)
             sql_command = use_table + seach_image
             farmer_log.debug(sql_command)
             cursor.execute(seach_image)
             farmer_log.debug(cursor.rowcount)
             if (-1 != cursor.rowcount) and (0 != cursor.rowcount):
                 result = True
+            output = cursor.fetchall()
+            farmer_log.info(output)
         except Exception as e:
+            self.connection.rollback()
             farmer_log.error("has_image_in_db_by_cuda_cuddn" + e.message)
         finally:
             cursor.close()
@@ -100,15 +106,18 @@ class Mysql_wrapper():
         cursor = self.connection.cursor()
         try:
             use_table = "USE animations;"
-            sql_command = use_table + "SELECT * FROM docker_images WHERE REPOSITORY = '%s' AND TAG = '%s'" % (repository, tag)
-            farmer_log.info(sql_command)
-            cursor.execute(sql_command)
-            self.connection.commit()
+            select_sql = "SELECT * FROM docker_images WHERE REPOSITORY = '%s' AND TAG = '%s';" % (repository, tag)
+            farmer_log.info(use_table)
+            cursor.execute(use_table)
+            farmer_log.info(select_sql)
+            cursor.execute(select_sql)
             numrows = int(cursor.rowcount)
             if numrows == 1:
                 row = cursor.fetchone()
             else:
                 farmer_log.error("the result numrows[%d] which is not 1." % numrows)
+            output = cursor.fetchall()
+            farmer_log.info(output)
         except Exception as e:
             farmer_log.error("get_detailed_info_from_db" + e.message)
         finally:
@@ -119,6 +128,9 @@ class Mysql_wrapper():
 if __name__ == "__main__":
     wrapper = Mysql_wrapper("localhost", "root", "RACQ4F6c")
     wrapper.init_database()
-    print wrapper.has_image_in_db_by_cuda_cuddn("cuda_7.5.18", "cudnn-7.5-linux-x64-v5.0-rc")
-    wrapper.inert_item_in_docker_images_table("nvidia/cuda", "7.5-cudnn5.1rc-devel-ubuntu14.04-caffe-pcs", 7.5, "cuda_7.5.18", 5.0, "cudnn-7.5-linux-x64-v5.0-rc", False, True)
-    print wrapper.has_image_in_db_by_cuda_cuddn("cuda_7.5.18", "cudnn-7.5-linux-x64-v5.0-rc")
+    #wrapper.inert_item_in_docker_images_table("nvidia/cuda", "7.5-cudnn5.1rc-devel-ubuntu14.04-caffe-pcs", 7.5,
+    #                                         "cuda_7.5.18", 5.0, "cudnn-7.5-linux-x64-v5.0-rc", False, True)
+    print wrapper.get_detailed_info_from_db("nvidia/cuda", "7.5-cudnn5.1rc-devel-ubuntu14.04-caffe-pcs")
+    #print wrapper.has_image_in_db_by_cuda_cuddn("cuda_7.5.18", "cudnn-7.5-linux-x64-v5.0-rc")
+
+    ##print wrapper.has_image_in_db_by_cuda_cuddn("cuda_7.5.18", "cudnn-7.5-linux-x64-v5.0-rc")
