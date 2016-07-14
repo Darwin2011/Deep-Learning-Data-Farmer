@@ -9,8 +9,8 @@ class XMLParser:
     XMLParser class definition
     Attributes:
         _file_path            : xml file path
-        _gpu_mode             : GPU Mode
-        _cude_version         : Cude Version
+        _gpu_model             : GPU Mode
+        _cuda_version         : Cude Version
         _cudnn_version        : Cudnn Version
         _topology_model_type  : Topoloy Model Type
         _framework            : Frame Type
@@ -20,9 +20,9 @@ class XMLParser:
 
     def __init__(self, filePath = None):
         self._file_path           = filePath
-        self._gpu_mode            = ""
-        self._cude_version        = ""
-        self._cude_version_string = ""
+        self._gpu_model            = ""
+        self._cuda_version        = ""
+        self._cuda_version_string = ""
         self._cudnn_version       = ""
         self._cudnn_version_string = ""
         self._topology_model_type = ""
@@ -42,9 +42,9 @@ class XMLParser:
 
         tree = ET.parse(self._file_path)
         root = tree.getroot()
-        self._gpu_mode             = getAttr(root, "GPUMode")
-        self._cude_version         = float(getAttr(root, "CudeVersion"))
-        self._cude_version_string  = getAttr(root, "CudeVersionString")
+        self._gpu_model             = getAttr(root, "GPUModel")
+        self._cuda_version         = float(getAttr(root, "CudaVersion"))
+        self._cuda_version_string  = getAttr(root, "CudaVersionString")
         self._cudnn_version        = float(getAttr(root, "CudnnVersion"))
         self._cudnn_version_string = getAttr(root, "CudnnVersionString")
         self._topology_model_type  = getAttr(root, "TopologyMode")
@@ -55,13 +55,13 @@ class XMLParser:
         self._dataSet              = getAttr(root, "DataSet")
 
     def getGPUMode(self):
-        return self._gpu_mode
+        return self._gpu_model
 
     def getCudeVersion(self):
-        return self._cude_version
+        return self._cuda_version
 
     def getCudeVersionString(self):
-        return self._cude_version_string
+        return self._cuda_version_string
 
     def getCudnnVersion(self):
         return self._cudnn_version

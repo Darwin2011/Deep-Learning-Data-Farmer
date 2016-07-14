@@ -15,8 +15,12 @@ class TestRequest(tornado.web.RequestHandler):
         self.render(self.__class__.test_request_html)
 
     def post(self):
+        batch_size = self.get_argument('batch_size')
+        iterations = self.get_argument('iterations')
         topology = self.get_argument('topology')
-        print(topology)        
+        cuda = self.get_argument('CUDA')
+        cudnn = self.get_argument('CUDNN')
+        framework = self.get_argument('framework')
         self.write("received!")
 
 
@@ -24,7 +28,8 @@ class TestRequest(tornado.web.RequestHandler):
 if __name__ == "__main__":
     tornado.options.parse_command_line()
     app = tornado.web.Application(handlers = [(r"/request", TestRequest), \
-        (r'/css/(.*)', tornado.web.StaticFileHandler, {'path': 'template/css'})
+        (r'/css/(.*)', tornado.web.StaticFileHandler, {'path': 'template/css'}), \
+        (r'/js/(.*)', tornado.web.StaticFileHandler, {'path': 'template/js'})
     ])
     http_server = tornado.httpserver.HTTPServer(app)
     http_server.listen(options.port)
