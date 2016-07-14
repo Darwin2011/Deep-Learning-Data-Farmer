@@ -2,7 +2,6 @@
 
 import os
 import re
-import MySQLdb
 from XMLParser import XMLParser
 
 
@@ -35,34 +34,19 @@ class Docker_Monitor(object):
     """
     def __new__(cls):
         if not hasattr(cls, 'instance'):
-            cls.instance = super(Singleton, cls).__new__(cls)
+            cls.instance = super(Docker_Monitor, cls).__new__(cls)
         return cls.instance
 
-    def __init__(self, host, user, passwd, database, table):
+    def __init__(self, host, user, passwd):
         self.images = []
-        self.db_connection = \
-            MySQLdb.connect(host = "%s" % (host, ), user = "%s" % (user, ), passwd = "%s" % (passwd, ), db = "%s" % (database, ))
-        self.table = table
 
-    def get_local_images(self):
-        def get_detailed_info_from_db(db_connection, table, repository, tag):
-            cursor = db_connection.cursor()
-            sql_command = "SELECT * FROM %s WHERE REPOSITORY = '%s' AND TAG = '%s'" % (table, repository, tag)
-            cursor.execute(sql_command)
-            db_connection.commit()
-            numrows = int(cursor.rowcount)
-            if numrows == 1:
-                row = cursor.fetchone()
-                return row
-            else:
-                return None
-            
+    def get_local_images(self, sql_wrapper):
         command = "sudo docker images | grep -v none | grep -vi REPOSITORY"
         fp = os.popen(command)
         for line in fp:
             (repository, tag, image_id, created_time, size) = re.split(' {3,}', line.strip())
             image = Docker_Image(repository, tag, image_id, created_time, size)
-            row = get_detailed_info_from_db(self.db_connection, self.table, repository, tag)
+            row = sql_wrapper.get_detailed_info_from_db(repository, tag)
             if row is not None:
                 (index, repository, tag, cuda_version, cuda_strings_version, cudnn_version, cudnn_strings_version, tensorflow_installed, caffe_installed) = row
                 image.get_image_property(cuda_version, cuda_strings_version, cudnn_version, cudnn_strings_version, tensorflow_installed, caffe_installed)
@@ -102,7 +86,7 @@ class Docker_Monitor(object):
         return result_index
 
 if __name__ == "__main__":
-    dm = Docker_Monitor('localhost', 'root', 'tracing', 'automations', 'docker_images')
+    dm = Docker_Monitor('localhost', 'root', 'tracing')
     dm.get_local_images()
     print(dm.images[0].__dict__)
     parser = XMLParser("DockerConfig.xml")
