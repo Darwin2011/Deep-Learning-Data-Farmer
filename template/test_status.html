@@ -28,15 +28,17 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 		<!---main--->
 			<div class="main">
                 <div class="status-section">
-                    <h4>GPUs Connected to system</h4>
                     <table>
                         <tr>
                             <td><h4>GPU Lists</h4></td>
-                            <td><h4>Core Freq</h4></td>
-                            <td><h4>Mem Freq</h4></td>
-                            <td><h4>Busy</h4></td>
+                            <td><h4>Instant Core Freq</h4></td>
+                            <td><h4>Instant Mem Freq</h4></td>
+                            <td><h4>Application Core Freq</h4></td>
+                            <td><h4>Application Mem Freq</h4></td>
+                            <td><h4>Auto Boost</h4></td>
                             <td><h4>SM Utilization</h4></td>
                             <td><h4>Memory Utilization</h4></td>
+                            <td><h4>Busy</h4></td>
                             <td><h4>Progress</h4></td>
                         </tr>
                         {% for gpu in gpus %}
@@ -44,6 +46,18 @@ License URL: http://creativecommons.org/licenses/by/3.0/
                             <td>{{ gpu.gpu_model }}</td>
                             <td>{{ gpu.get_core_frequency(gpu.__class__.graphics_mode.INSTANT) }} </td>
                             <td>{{ gpu.get_memory_frequency(gpu.__class__.graphics_mode.INSTANT) }} </td>
+                            <td>{{ gpu.get_core_frequency(gpu.__class__.graphics_mode.APPLICATION) }} </td>
+                            <td>{{ gpu.get_memory_frequency(gpu.__class__.graphics_mode.APPLICATION) }} </td>
+                            <td>
+                                {% if gpu.get_autoboost() == True %}
+                                On
+                                {% end%}
+                                {% if gpu.get_autoboost() == False %}
+                                Off
+                                {% end%}
+                            </td>
+                            <td>{{ gpu.get_sm_utilization() }}</td>
+                            <td>{{ gpu.get_memory_utilization() }} </td>
                             <td>
                                 <svg height="25" width="25">
                                     {% if gpu.is_gpu_free() %}
@@ -54,8 +68,6 @@ License URL: http://creativecommons.org/licenses/by/3.0/
                                     {% end%}
                                 </svg>
                             </td>
-                            <td>{{ gpu.get_sm_utilization() }}</td>
-                            <td>{{ gpu.get_memory_utilization() }} </td>
                             <td><progress value="10" max="100"></progress></td>
                         </tr>
                         {% end%}
@@ -64,7 +76,7 @@ License URL: http://creativecommons.org/licenses/by/3.0/
                 </div>
 			</div>
 			<div class="footer">
-			<p>Intel PCS 2016. All rights reserved</a></p>
+			<p>Copyright 2016 Intel PCS. All rights reserved</a></p>
 		</div>
 
 		<!---main--->

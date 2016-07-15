@@ -47,9 +47,24 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 									    <input name="iterations" class="pretty-input" value="100" />
                                     </div>
 									<div style="margin: 1em;">
+                                        <label style="display: block"><h4>GPU Model: </h4></label>
+										<select class="pretty-select" name="gpu_model">
+											<option value="TITAN X">TITAN X</option>
+											<option value="GTX-1080">GTX-1080</option>
+											<option value="GTX-1070">GTX-1070</option>
+										</select>
+									</div>
+									<div style="margin: 1em;">
+                                        <label style="display: block"><h4>GPU AUTOBOOST: </h4></label>
+										<select class="pretty-select" name="gpu_boost">
+											<option value="Off">Off</option>
+											<option value="On">On</option>
+										</select>
+									</div>
+									<div style="margin: 1em;">
                                         <label style="display: block"><h4>Topology: </h4></label>
 										<select class="pretty-select" name="topology">
-											<option value="All">All</option>
+											<option value="all">All</option>
 											<option value="alexnet_group1">Alexnet Group1</option>
 											<option value="alexnet_group2">Alexnet Group2</option>
 											<option value="googlenet">Googlenet</option>
@@ -65,7 +80,7 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 										</select>
 									</div>
 									<div style="margin: 1em;">
-                                        <label style="display: block"><h4>Cuda Version: </h4></label>
+                                        <label style="display: block"><h4>CUDNN Version: </h4></label>
 										<select class="pretty-select" name="CUDNN">
 											<option value="cudnn-5.1">cudnn-5.1</option>
 											<option value="cudnn-5.0">cudnn-5.0</option>
@@ -75,9 +90,9 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 									<div style="margin: 1em;">
                                         <label style="display: block"><h4>Framework: </h4></label>
 										<select class="pretty-select" name="framework">
-											<option value="all">all</option>
-											<option value="tensorflow">tensorflow</option>
-											<option value="caffe">caffe</option>
+											<option value="all">All</option>
+											<option value="tensorflow">Tensorflow</option>
+											<option value="caffe">Caffe</option>
 										</select>
 									</div>
 									<div class="clear"></div>
@@ -89,7 +104,7 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 				</div>
 			</div>
 			<div class="footer">
-			<p>copy 2016 Intel PCS. All rights reserved</a></p>
+			<p>Copyright 2016 Intel PCS. All rights reserved</p>
 		</div>
 
 		<!---main--->
