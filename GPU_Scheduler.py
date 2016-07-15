@@ -32,6 +32,8 @@ class GPU_Scheduler:
         if -1 == index:
             # TODO
             self.build_image()
+            # TODO
+            # docker control inert docker_image_info into database
             index = self.docker_control.get_image_index(self.parser)
         gpu_device = self.gpu_monitor.get_gpu_from_model(gpumodel)
         if gpu_device is None:
