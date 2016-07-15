@@ -125,6 +125,7 @@ class Mysql_wrapper():
         return row
 
 
+
 if __name__ == "__main__":
     wrapper = Mysql_wrapper("localhost", "root", "RACQ4F6c")
     wrapper.init_database()

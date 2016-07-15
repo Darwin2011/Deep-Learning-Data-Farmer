@@ -29,7 +29,10 @@ class GPU_Scheduler:
         if -1 == index:
             # TODO
             self.build_image()
+            # TODO
+            # docker control inert docker_image_info into database
             index = self.docker_control.get_image_index(self.parser)
+
         image = self.docker_control.get_image(index)
         container = get_random_container()
         execute(run_docker(container, image.repository, image.tag))
@@ -37,6 +40,7 @@ class GPU_Scheduler:
         test_workload.copy()
         results = []
         iterations = 1
+        # workload move to
         topology_bz_maps = {'alexnet_group1' : (256, 1), 'alexnet_group2' : (256, 1), 'googlenet' : (32, 1), 'vgg_19' : (32, 1)}
         for topology in ('alexnet_group1', 'alexnet_group2', 'googlenet', 'vgg_19'):
             bzs = topology_bz_maps[topology]

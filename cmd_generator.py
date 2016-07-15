@@ -2,6 +2,7 @@
 """
     This file defines how to generate the docker command.
 """
+# TODO: ADD DOCKER helper documents
 import os
 import farmer_log
 import datetime
@@ -33,8 +34,11 @@ def kill_docker(container):
     result = sudo_wrapper("%s kill %s" % (DOCKER_COMMAND, container))
 
 def execute(command):
+    #TODO
     output = os.popen(command)
-
+    if output != None:
+        farmer_log.info(output.read())
+    return output
 
 def get_random_container():
     now = datetime.datetime.now()
@@ -53,10 +57,7 @@ if __name__ == "__main__":
     print sudo_wrapper("and command")
     print load_image("image.tar.gz")
     print show_images()
-    print run_workload("contain_id_", "rep", "tag")
 
     modify_docker()
     print sudo_wrapper("and command")
     print load_image("image.tar.gz")
-    print show_images()
-    print run_workload("contain_id_", "rep", "tag")
