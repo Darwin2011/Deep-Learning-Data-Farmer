@@ -54,6 +54,11 @@ class XMLParser:
         self._caffe_installed      = int(getAttr(root, "CaffeInstalled"))
         self._dataSet              = getAttr(root, "DataSet")
 
+
+    def generate_xml(self, gpu_model, batch_size, iterations, topology, cuda, cudnn, framework):
+        """
+        """
+
     def getGPUMode(self):
         return self._gpu_model
 

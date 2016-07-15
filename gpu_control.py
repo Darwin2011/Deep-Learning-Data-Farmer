@@ -30,8 +30,8 @@ class GPUDevice(object):
             ...   
     """
     graphics_mode = Enum("INSTANT", "APPLICATION", "APPLICATION_DEFAULT", "MAX")
-    sm_free_threshold = 0.02
-    memory_free_threshold = 0.03
+    sm_free_threshold = 0.03
+    memory_free_threshold = 0.05
     
     def __init__(self, hostname, gpuid):
         """
@@ -177,6 +177,18 @@ class GPUDevice(object):
         mem_utilization = float(0.01 * int(fp.read()))
         return (core_utilization, mem_utilization)
 
+    def get_sm_utilization(self):
+        core_command = "nvidia-smi -q -d utilization -i %d | grep Gpu | awk '{print $(NF-1)}'" % (self.gpuid, )
+        fp = os.popen(self.sudo_wrapper(core_command))
+        core_utilization = float(0.01 * int(fp.read()))
+        return core_utilization
+
+    def get_memory_utilization(self):
+        mem_command = "nvidia-smi -q -d utilization -i %d | grep Memory | grep -vi sam | awk '{print $(NF-1)}'" % (self.gpuid, )
+        fp = os.popen(self.sudo_wrapper(mem_command))
+        mem_utilization = float(0.01 * int(fp.read()))
+        return mem_utilization
+         
     def is_gpu_free(self):
         """
             judge whether GPU is free or not

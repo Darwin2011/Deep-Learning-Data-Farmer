@@ -1,0 +1,72 @@
+<!--Author: W3layouts
+Author URL: http://w3layouts.com
+License: Creative Commons Attribution 3.0 Unported
+License URL: http://creativecommons.org/licenses/by/3.0/
+-->
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>Property Search Widget Form Responsive Widget Template | Home :: w3layouts</title>
+<link href="css/style.css" rel="stylesheet" type="text/css" media="all"/>
+<link rel="stylesheet" type="text/css" href="css/jquery-ui.css">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+<meta name="keywords" content="Property Search Widget Form  Responsive, Login form web template, Sign up Web Templates, Flat Web Templates, Login signup Responsive web template, Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, SonyEricsson, Motorola web design" />
+<!--web-fonts-->
+<link href='//fonts.googleapis.com/css?family=Open+Sans:400,300,300italic,400italic,600,600italic,700,700italic,800,800italic' rel='stylesheet' type='text/css'></head>
+<link href='//fonts.googleapis.com/css?family=Josefin+Sans:400,100,100italic,300,300italic,400italic,600,600italic,700,700italic' rel='stylesheet' type='text/css'>
+<!-- js -->
+<script type="text/javascript" src="js/jquery-2.1.4.min.js"></script>
+<!-- //js -->
+<body>
+		<!---header--->
+		<div class="header">
+			<h1>GPU Status Panel</h1>
+		</div>
+		<!---header--->
+		<!---main--->
+			<div class="main">
+                <div class="status-section">
+                    <h4>GPUs Connected to system</h4>
+                    <table>
+                        <tr>
+                            <td><h4>GPU Lists</h4></td>
+                            <td><h4>Core Freq</h4></td>
+                            <td><h4>Mem Freq</h4></td>
+                            <td><h4>Busy</h4></td>
+                            <td><h4>SM Utilization</h4></td>
+                            <td><h4>Memory Utilization</h4></td>
+                            <td><h4>Progress</h4></td>
+                        </tr>
+                        {% for gpu in gpus %}
+                        <tr>
+                            <td>{{ gpu.gpu_model }}</td>
+                            <td>{{ gpu.get_core_frequency(gpu.__class__.graphics_mode.INSTANT) }} </td>
+                            <td>{{ gpu.get_memory_frequency(gpu.__class__.graphics_mode.INSTANT) }} </td>
+                            <td>
+                                <svg height="25" width="25">
+                                    {% if gpu.is_gpu_free() %}
+                                    <circle cx="12" cy="12" r="10" stroke="white" stroke-width="2" fill="green" />
+                                    {% end%}
+                                    {% if gpu.is_gpu_free() == False %}
+                                    <circle cx="12" cy="12" r="10" stroke="white" stroke-width="2" fill="red" />
+                                    {% end%}
+                                </svg>
+                            </td>
+                            <td>{{ gpu.get_sm_utilization() }}</td>
+                            <td>{{ gpu.get_memory_utilization() }} </td>
+                            <td><progress value="10" max="100"></progress></td>
+                        </tr>
+                        {% end%}
+                        <tr>
+                    </table>     
+                </div>
+			</div>
+			<div class="footer">
+			<p>Intel PCS 2016. All rights reserved</a></p>
+		</div>
+
+		<!---main--->
+</body>
+</html>
