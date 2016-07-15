@@ -9,7 +9,7 @@ class Mysql_wrapper():
 
     def __init__(self, host, user, passwd):
         self.connection = \
-            MySQLdb.Connect(host="%s" % (host,), user="%s" % (user,), passwd="%s" % (passwd,), db="%s" % ("automation",))
+            MySQLdb.Connect(host="%s" % (host,), user="%s" % (user,), passwd="%s" % (passwd,), db="%s" % ("automations",))
 
     def __del__(self):
         self.connection.close()
