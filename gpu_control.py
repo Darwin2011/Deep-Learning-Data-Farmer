@@ -60,6 +60,7 @@ class GPUDevice(object):
                 GPU Model Name 
         """ 
         command = "nvidia-smi -L"
+        comamnd = self.sudo_wrapper(command)
         fp = os.popen(command)
         for line in fp:
             line = line.strip()
@@ -226,6 +227,13 @@ class GPUMonitor(object):
             cls.instance = super(GPUMonitor, cls).__new__(cls)
         return cls.instance 
 
+    def sudo_wrapper(self, command):
+        """
+            Returns:
+             sudo + command as strings
+        """
+        return "sudo " + command
+
     def __init__(self):
         self.gpulists = []
         self.gpu_models_set = set()
@@ -234,6 +242,21 @@ class GPUMonitor(object):
     def has_gpu(self, gpu):
         return gpu.gpu_uuid in self.gpu_uuid_set
 
+    def get_gpu_from_model(self, gpu_model):
+        if gpu_model in self.gpu_models_set:
+            for g in self.gpulists:
+                if g.gpu_model == gpu_model:
+                    return g 
+        return None
+
+    def init_local_gpu_lists(self):
+        command = "nvidia-smi -L | awk -F: '{print $1}' | awk -F' ' '{print $2}'"
+        command = self.sudo_wrapper(command)
+        fp = os.popen(command)
+        for gpu_id in fp:
+            gpu_id.strip()
+            self.add_gpu('127.0.0.1', int(gpu_id))
+        
     def add_gpu(self, hostname, gpuid):
         gpu = GPUDevice(hostname, gpuid)
         if self.has_gpu(gpu):
@@ -260,7 +283,8 @@ if __name__ == '__main__':
     print(gpu.is_gpu_free())
     print(gpu.get_running_process())
     print(gpu.get_gpu_model())
+    print('----------')
     gm = GPUMonitor()
-    gm.add_gpu("127.0.0.1", 0)
+    gm.init_local_gpu_lists()
     print(gm.gpu_uuid_set)
     print(gm.gpu_models_set)

@@ -3,8 +3,8 @@ import os
 import re
 import sys
 import pandas
-from server.server_start import result_content_html
 from cmd_generator import *
+
 class Workload(object):
    
     def __init__(self, container):
@@ -20,11 +20,20 @@ class Caffe_Workload(Workload):
     docker_run_script = '/home/caffe/caffe_bench/run_single.sh'
     
 
+    batch_size = { \
+        'alexnet_group1' : (256, 1), \
+        'alexnet_group2' : (256, 1), \
+        'googlenet' : (32, 1), \
+        'vgg_19' : (32, 1)
+    }
+
+    source = ["upstream", "nvidia"]
+
     topology = { \
-        'alexnet_group1' : 'alexnet_group1.prototxt',
-        'alexnet_group2' : 'alexnet_group2.prototxt',
-        'googlenet' : 'googlenet.prototxt',
-        'vgg_19' : 'vgg_19.prototxt',
+        'alexnet_group1' : 'alexnet_group1.prototxt', \
+        'alexnet_group2' : 'alexnet_group2.prototxt', \
+        'googlenet' : 'googlenet.prototxt', \
+        'vgg_19' : 'vgg_19.prototxt', \
         'lenet' : 'lenet.prototxt'
     }
 
@@ -47,7 +56,19 @@ class Caffe_Workload(Workload):
     def build_in_docker(self):
         pass
 
-    def run(self, topology, iterations, batch_size, gpuid, caffe_source):
+
+    def run_batch(self, topologies, iterations, batch_size, gpuid):
+        for topology in topologies:
+            if batch_size == None:
+                bzs = self.__class__.batch_size[topology]
+            else:
+                bzs = batch_size 
+                for bz in bzs:
+                    for source in self.__class__.source:
+                        self.run_specific_config(topology, iterations, bz, gpuid, source)
+                    
+             
+    def run_specific_config(self, topology, iterations, batch_size, gpuid, caffe_source):
         '''
             
 	        Args:
@@ -100,17 +121,6 @@ if __name__ == '__main__':
     cw.copy()
     results = []
     iterations = 1
-    topology_bz_maps = {'alexnet_group1' : (256, 1), 'alexnet_group2' : (256, 1), 'googlenet' : (32, 1), 'vgg_19' : (32, 1)}
-    for topology in ('alexnet_group1', 'alexnet_group2', 'googlenet', 'vgg_19'):
-        bzs = topology_bz_maps[topology]
-        for bz in bzs:
-            result1 = cw.run(topology, iterations, bz, 0, 'upstream')
-            result2 = cw.run(topology, iterations, bz, 0, 'nvidia')
-            updated_result = cw.merge_result(result1, result2)
-            if updated_result is not None:
-                results.append(updated_result)
-    df = pandas.DataFrame(results)
-    cols = df.columns.tolist()
-    cols = ['topology', 'source', 'batch_size', 'iterations', 'score', 'training images per second']
-    df = df[cols]
-    df.to_csv(sys.stdout)
+    topologies = ['alexnet_group1', 'alexnet_group2'] 
+    cw.run_batch(topologies, iterations, [100], 0)
+

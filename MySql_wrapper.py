@@ -23,8 +23,8 @@ class Mysql_wrapper():
         Returns:
         """
         cursor = self.connection.cursor()
-        create_database = "CREATE DATABASE IF NOT EXISTS animations;"
-        use_database = "USE animations;"
+        create_database = "CREATE DATABASE IF NOT EXISTS automations;"
+        use_database = "USE automations;"
         create_table  = "CREATE TABLE IF NOT EXISTS docker_images (id INT NOT NULL AUTO_INCREMENT, REPOSITORY VARCHAR(500) NOT NULL, TAG VARCHAR(500) NOT NULL,CUDA_VERSION FLOAT NOT NULL,CUDA_VERSION_STRING VARCHAR(500) NOT NULL,CUDNN_VERSION FLOAT NOT NULL,CUDNN_VERSION_STRING VARCHAR(500) NOT NULL,TENSORFLOW BOOL NOT NULL, CAFFE BOOL NOT NULL,PRIMARY KEY (id));"
         sql_cmd = use_database + create_table
         farmer_log.info("init database command : [%s]" % create_database)
@@ -41,7 +41,7 @@ class Mysql_wrapper():
         result = False
         cursor = self.connection.cursor()
         try:
-            use_table = "USE animations;"
+            use_table = "USE automations;"
             seach_image = "SELECT repository, tag FROM docker_images WHERE REPOSITORY = '%s' AND TAG = '%s';" % (repository, tag)
             sql_command = use_table + seach_image
             farmer_log.debug(sql_command)
@@ -61,7 +61,7 @@ class Mysql_wrapper():
     def inert_item_in_docker_images_table(self, repository, tag, cuda_version, cuda_version_str, cudnn_version, cudnn_version_str, have_tensorflow, have_caffe):
         cursor = self.connection.cursor()
         try:
-            use_table = "USE animations;"
+            use_table = "USE automations;"
             inserted_sql = 'INSERT INTO docker_images (REPOSITORY, TAG,\
              CUDA_VERSION, CUDA_VERSION_STRING, CUDNN_VERSION,\
              CUDNN_VERSION_STRING, TENSORFLOW, CAFFE) \
@@ -84,7 +84,7 @@ class Mysql_wrapper():
         result = False
         cursor = self.connection.cursor()
         try:
-            use_table = "USE animations;"
+            use_table = "USE automations;"
             seach_image = "SELECT repository, tag FROM docker_images WHERE CUDA_VERSION_STRING = '%s' AND CUDNN_VERSION_STRING = '%s';" % (cuda_string, cuddn_string)
             sql_command = use_table + seach_image
             farmer_log.debug(sql_command)
@@ -105,7 +105,7 @@ class Mysql_wrapper():
         row = None
         cursor = self.connection.cursor()
         try:
-            use_table = "USE animations;"
+            use_table = "USE automations;"
             select_sql = "SELECT * FROM docker_images WHERE REPOSITORY = '%s' AND TAG = '%s';" % (repository, tag)
             farmer_log.info(use_table)
             cursor.execute(use_table)

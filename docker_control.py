@@ -90,7 +90,7 @@ class Docker_Monitor(object):
 
 if __name__ == "__main__":
     dm = Docker_Monitor('localhost', 'root', 'tracing')
-    dm.get_local_images(Mysql_wrapper("localhost", "root", "RACQ4F6c"))
+    dm.get_local_images(Mysql_wrapper("localhost", "root", "tracing"))
     print(dm.images[0].__dict__)
     parser = XMLParser("DockerConfig.xml")
     parser.parse()

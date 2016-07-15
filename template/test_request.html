@@ -40,7 +40,7 @@ License URL: http://creativecommons.org/licenses/by/3.0/
                                     </div>
 									<div style="margin: 1em;">
                                         <label style="display: block"><h4>Batch Size: </h4></label>
-									    <input name="batch_size" value="auto" class="pretty-input" />
+									    <input name="batch_size" value="default" class="pretty-input" />
                                     </div>
 									<div style="margin: 1em;">
                                         <label style="display: block"><h4>Iterations: </h4></label>
@@ -49,10 +49,10 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 									<div style="margin: 1em;">
                                         <label style="display: block"><h4>GPU Model: </h4></label>
 										<select class="pretty-select" name="gpu_model">
-											<option value="TITAN X">TITAN X</option>
-											<option value="GTX-1080">GTX-1080</option>
-											<option value="GTX-1070">GTX-1070</option>
-										</select>
+                                        {% for gpu in gpus %}    
+											<option value="{{ gpu.get_gpu_model()[0] }}">{{ gpu.get_gpu_model()[0] }}</option>
+										{% end %}
+                                        </select>
 									</div>
 									<div style="margin: 1em;">
                                         <label style="display: block"><h4>GPU AUTOBOOST: </h4></label>
