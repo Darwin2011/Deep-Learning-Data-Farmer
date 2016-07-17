@@ -30,8 +30,8 @@ def run_docker(container, repository, tag):
     farmer_log.info(result)
     return result
 
-def remove_docker(container):
-    result = sudo_wrapper("%s rm %s" % (DOCKER_COMMAND, container))
+def stop_docker(container):
+    result = sudo_wrapper("%s stop %s" % (DOCKER_COMMAND, container))
 
 def kill_docker(container):
     result = sudo_wrapper("%s kill %s" % (DOCKER_COMMAND, container))

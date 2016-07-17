@@ -7,9 +7,9 @@ filterwarnings("ignore", category = MySQLdb.Warning)
 
 class Mysql_wrapper():
 
-    def __init__(self, host, user, passwd):
+    def __init__(self, host, user, passwd, dataset):
         self.connection = \
-            MySQLdb.Connect(host="%s" % (host,), user="%s" % (user,), passwd="%s" % (passwd,), db="%s" % ("automations",))
+            MySQLdb.Connect(host="%s" % (host,), user="%s" % (user,), passwd="%s" % (passwd,), db="%s" % (dataset,))
 
     def __del__(self):
         self.connection.close()

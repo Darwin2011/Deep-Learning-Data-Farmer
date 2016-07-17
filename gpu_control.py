@@ -44,7 +44,10 @@ class GPUDevice(object):
         self.gpu_uuid = None
         self.processes = []
         self.blocked = False     
+        self.listener = None
         self.get_gpu_model()
+        self.task_queues = []
+
 
     def sudo_wrapper(self, command):
         """
@@ -248,6 +251,11 @@ class GPUMonitor(object):
                 if g.gpu_model == gpu_model:
                     return g 
         return None
+
+    def register_listener(self, listener):
+        for g in self.gpulists:
+            g.listener = listener
+
 
     def init_local_gpu_lists(self):
         command = "nvidia-smi -L | awk -F: '{print $1}' | awk -F' ' '{print $2}'"

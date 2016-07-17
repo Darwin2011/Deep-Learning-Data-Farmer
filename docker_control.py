@@ -21,13 +21,13 @@ class Docker_Image(object):
         self.caffe_installed = False
         self.tensorflow_installed = False
 
-    def get_image_property(self, cuda_version, cuda_strings_version, cudnn_version, cudnn_strings_version, caffe_installed, tensorflow_installed):
+    def get_image_property(self, cuda_version, cuda_strings_version, cudnn_version, cudnn_strings_version, tensorflow_installed, caffe_installed):
         self.cuda_version = cuda_version 
         self.cuda_strings_version = cuda_strings_version
         self.cudnn_version = cudnn_version
         self.cudnn_strings_version = cudnn_strings_version
-        self.caffe_installed = caffe_installed
         self.tensorflow_installed = tensorflow_installed
+        self.caffe_installed = caffe_installed
         
 class Docker_Monitor(object):
     """
@@ -62,30 +62,19 @@ class Docker_Monitor(object):
             return
         return self.images[index]
 
-    def get_image_index(self, parser):
+    def get_image_index(self, cuda_version_string, cudnn_version_string, caffe_installed, tensorflow_installed):
         """
         get the index of the item we looking for.
         If we won't find. the return -1.
             Paratmeter : the parser who have the flag value
         """
-        result_index     = -1
-        looking_for_item = [parser.getCudeVersionString(),   \
-                            parser.getCudnnVersionString(),  \
-                            parser.is_tenseflow_installed(), \
-                            parser.is_caffe_installed()]
-
+        result_index = -1
         for index, image in enumerate(self.images):
-
-            image_item = [image.cuda_strings_version,  \
-                          image.cudnn_strings_version, \
-                          image.tensorflow_installed,  \
-                          image.caffe_installed]
-            if looking_for_item[0] == image_item[0] and \
-               looking_for_item[1] == image_item[1] and \
-               looking_for_item[2] == image_item[2] and \
-               looking_for_item[3] == image_item[3]:
-                result_index = index
-
+            if image.cuda_strings_version == cuda_version_string and \
+                image.cudnn_strings_version == cudnn_version_string:
+                if (caffe_installed == False or (caffe_installed == True and image.caffe_installed == True)) and \
+                    (tensorflow_installed == False or (tensorflow_installed == True and image.tensorflow_installed == True)):
+                    return index
         return result_index
 
 if __name__ == "__main__":

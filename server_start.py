@@ -7,7 +7,7 @@ import tornado.web
 import dicttoxml
 from xml.dom.minidom import parseString
 from gpu_control import *
-from GPU_Scheduler import * 
+from task_scheduler import * 
 
 from tornado.options import define, options
 define('port', default=8000, help='run on the given port', type=int)
