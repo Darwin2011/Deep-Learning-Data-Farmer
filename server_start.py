@@ -12,7 +12,7 @@ from task_scheduler import *
 from tornado.options import define, options
 define('port', default=8000, help='run on the given port', type=int)
 
-scheduler = GPU_Scheduler()
+scheduler = Task_Scheduler()
 
 class TestRequest(tornado.web.RequestHandler):
     test_request_html = 'template/test_request.html'

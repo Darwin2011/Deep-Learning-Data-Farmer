@@ -65,7 +65,8 @@ class Task_Scheduler(object):
             # TODO
             # docker control inert docker_image_info into database
             index = self.docker_control.get_image_index(config['cuda_string'], config['cudnn_string'], config['caffe'], config['tensorflow'])
-        gpuid = config['gpu_id'] 
+        #gpuid = config['gpu_id'] 
+        gpuid = 1
         image = self.docker_control.get_image(index)
         container = get_random_container()
         execute(run_docker(container, image.repository, image.tag))
