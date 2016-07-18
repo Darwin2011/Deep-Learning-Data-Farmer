@@ -44,6 +44,7 @@ class Mysql_wrapper():
         FRAMEWORK      VARCHAR(500) NOT NULL,
         TOPOLOGY       VARCHAR(500) NOT NULL,
         BATCH_SIZE     INT          NOT NULL,
+        SOURCE         VARCHAR(500) NOT NULL,
         ITERATION      INT          NOT NULL,
         SCORE          DOUBLE       NOT NULL,
         IMAGES_PRE_SEC DOUBLE       NOT NULL,
@@ -100,13 +101,13 @@ class Mysql_wrapper():
         finally:
             cursor.close()
 
-    def inert_item_in_result_reports(self, resquest_id, docker_id, gpu_module, mail_addr, framework, topology, batch_size, iteration, score, images_pre_sec):
+    def inert_item_in_result_reports(self, resquest_id, docker_id, gpu_module, mail_addr, framework, topology, batch_size, source, iteration, score, images_pre_sec):
         cursor = self.connection.cursor()
         try:
             inserted_sql = 'INSERT INTO result_reports\
-            (RESQUEST_ID,  DOCKER_ID,  GPU_MODULE,  MAIL_ADDRESS,  FRAMEWORK,  TOPOLOGY,  BATCH_SIZE,  ITERATION,  SCORE,  IMAGES_PRE_SEC) \
-      VALUES(%d,           %d,         "%s",        "%s",          "%s",       "%s",      %d,          %d          %f,     %f);' % \
-            (resquest_id,  docker_id,  gpu_module,  mail_addr,     framework, topology,  batch_size,   iteration,  score,  images_pre_sec)
+            (RESQUEST_ID,  DOCKER_ID,  GPU_MODULE,  MAIL_ADDRESS,  FRAMEWORK,  TOPOLOGY,  BATCH_SIZE,  SOURCE,  ITERATION,  SCORE,  IMAGES_PRE_SEC) \
+      VALUES(%d,           %d,         "%s",        "%s",          "%s",       "%s",      %d,          %s       %d          %f,     %f);' % \
+            (resquest_id,  docker_id,  gpu_module,  mail_addr,     framework, topology,  batch_size,   source,  iteration,  score,  images_pre_sec)
             cursor.execute(inserted_sql)
             self.connection.commit()
             output = cursor.fetchall()
@@ -151,7 +152,8 @@ class Mysql_wrapper():
                                            output[6], \
                                            output[7], \
                                            output[8], \
-                                           output[9]))
+                                           output[9], \
+                                           output[10]))
                 farmer_log.info(output)
         except Exception as e:
             farmer_log.error("get_result_by_request_id:" + e.message)
