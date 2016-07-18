@@ -47,6 +47,7 @@ class GPUDevice(object):
         self.listener = None
         self.get_gpu_model()
         self.task_queues = []
+        self.email = 'nobody'
 
 
     def sudo_wrapper(self, command):
@@ -76,7 +77,15 @@ class GPUDevice(object):
                 self.gpu_uuid = gpu_uuid.strip()
                 return (self.gpu_model, self.gpu_uuid) 
         return None
+    
+    def get_email(self):
+        return self.email
  
+
+    def set_email(self, email):
+        self.email = email
+        
+
     def get_core_frequency(self, mode):
         """
             get core frequency as int

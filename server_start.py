@@ -5,6 +5,7 @@ import tornado.ioloop
 import tornado.options
 import tornado.web
 import dicttoxml
+import threading
 import os
 from xml.dom.minidom import parseString
 from gpu_control import *
@@ -17,10 +18,14 @@ scheduler = Task_Scheduler()
 class TestRequest(tornado.web.RequestHandler):
     test_request_html = 'template/test_request.html'
     request_id = 0
+    lock = threading.Lock()
     def get(self):
         self.render(self.__class__.test_request_html, gpus = scheduler.gpu_monitor.gpulists)
 
     def post(self):
+        self.__class__.lock.acquire()
+        self.__class__.request_id += 1
+        self.__class__.lock.release() 
         options = {}
         options['email'] = self.get_argument('email')
         batch_size = self.get_argument('batch_size')
@@ -32,16 +37,17 @@ class TestRequest(tornado.web.RequestHandler):
         options['cuda'] = self.get_argument('CUDA')
         options['cudnn'] = self.get_argument('CUDNN')
         options['framework'] = self.get_argument('framework')
+        timestamp = datetime.datetime.now().strftime("%s")
+        request_string = '%s_%d' % (timestamp, self.__class__.request_id)
+        options['request_id'] = request_string 
         dom = parseString(dicttoxml.dicttoxml(options, attr_type=False))
         xml_string = dom.toprettyxml()
-        timestamp = datetime.datetime.now().strftime("%s")
         filename = "%s_%d.xml" % (timestamp, self.__class__.request_id)
         filepath = os.path.join('xml', filename)
-        self.__class__.request_id += 1
         with open(filepath, 'w') as f:
             f.write(xml_string)
-        scheduler.assign_request(filepath) 
-        print('End of Post')
+        scheduler.assign_request(filepath)
+        self.redirect('/taskquery')
 
 class TestStatus(tornado.web.RequestHandler):
     test_status_html = 'template/test_status.html'
@@ -49,12 +55,18 @@ class TestStatus(tornado.web.RequestHandler):
     def get(self):
         self.render(self.__class__.test_status_html, gpus = scheduler.gpu_monitor.gpulists)
 
+class TestQuery(tornado.web.RequestHandler):
+    test_status_html = 'template/test_taskquery.html'
+
+    def get(self):
+        self.render(self.__class__.test_status_html, gpus = scheduler.gpu_monitor.gpulists)
 
 if __name__ == '__main__':
     tornado.options.parse_command_line()
     app = tornado.web.Application(handlers = [
         (r'/request', TestRequest), \
         (r'/status', TestStatus), \
+        (r'/taskquery', TestStatus), \
         (r'/css/(.*)', tornado.web.StaticFileHandler, {'path': 'template/css'}), \
         (r'/js/(.*)', tornado.web.StaticFileHandler, {'path': 'template/js'})
     ])

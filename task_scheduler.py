@@ -8,6 +8,7 @@ from workload import Caffe_Workload
 import pandas
 import cmd_generator
 import time
+import threading
 from docker_control import Docker_Monitor
 from threading import Thread
 from gpu_control import *
@@ -33,6 +34,7 @@ class Task_Scheduler(object):
         self.gpu_monitor.register_listener(self)
         self.requests = [] 
         self.prepare_env()
+        self.lock = threading.Lock()
 
     def prepare_env(self):
         self.sql_wrapper.init_database()
@@ -49,7 +51,7 @@ class Task_Scheduler(object):
             farmer_logger.error('Internal Fatal Error, Wrong GPU Model Name')
             raise Exception('Internal Fatal Error')
         config['gpu_id'] = gpu_device.gpuid
-        config['gpu_device'] = gpu_device            
+        config['gpu_device'] = gpu_device
         return config
     
  
@@ -57,13 +59,14 @@ class Task_Scheduler(object):
         """
             scheduler tries to assign one request to one specified GPU
         """
+        self.lock.acquire()
         config = self.parse_new_request_from_xml(filepath)
         self.requests.append(config)
+        self.lock.release()
         thread = Thread(target = self.run) 
         thread.start()
  
     def run(self):
-        print(self.requests)
         for request in self.requests:
             if self.request_runnable(request):
                 status = self.test_start(request)
@@ -78,7 +81,6 @@ class Task_Scheduler(object):
  
     def test_start(self, config):
         index = self.docker_control.get_image_index(config['cuda_string'], config['cudnn_string'], config['caffe'], config['tensorflow'])
-        print(index)
         if index == -1:
             # TODO
             self.build_image()
