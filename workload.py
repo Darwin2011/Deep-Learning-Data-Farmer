@@ -41,6 +41,7 @@ class Caffe_Workload(Workload):
 
     def __init__(self, container):
         super(Caffe_Workload, self).__init__(container)
+        self.raw_log_buffer = bytearray() 
 
     def sudo_docker_wrapper(self, command):
         return 'sudo docker exec %s %s' % (self.container, command)
@@ -94,6 +95,7 @@ class Caffe_Workload(Workload):
             command = self.sudo_docker_wrapper(command)
             fp = os.popen(command)
             for line in fp:
+                self.raw_log_buffer.append(line)
                 m = re.match('^Score', line.strip())
                 if m is not None:
                     result['score'] = float(line.split(':')[-1])                     

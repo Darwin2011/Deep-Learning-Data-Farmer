@@ -86,7 +86,7 @@ class Task_Scheduler(object):
         test_workload.copy()
 
         results = test_workload.run_batch(config['topology'], config['iterations'], config['batch_size'], gpuid)
-
+ 
         request_id = config['request_id'] 
         for result in results:
             self.sql_wrapper.inert_item_in_result_reports(\
