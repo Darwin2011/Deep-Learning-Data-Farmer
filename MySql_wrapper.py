@@ -122,16 +122,17 @@ class Mysql_wrapper():
         cursor = self.connection.cursor()
         try:
             seach_image = "SELECT \
-            RESQUEST_ID,\
-            DOCKER_ID,\
-            GPU_MODULE,\
-            MAIL_ADDRESS,\
-            FRAMEWORK,\
-            TOPOLOGY,\
-            BATCH_SIZE,\
-            ITERATION,\
+            RESQUEST_ID, \
+            DOCKER_ID, \
+            GPU_MODULE, \
+            MAIL_ADDRESS, \
+            FRAMEWORK, \
+            TOPOLOGY, \
+            BATCH_SIZE, \
+            SOURCE, \
+            ITERATION, \
             SCORE,\
-            IMAGES_PRE_SEC\
+            IMAGES_PRE_SEC \
             FROM result_reports WHERE REQUEST_ID = '%s';" % (request_id)
             farmer_log.debug(seach_image)
             cursor.execute(seach_image)
