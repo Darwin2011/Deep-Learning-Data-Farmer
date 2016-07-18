@@ -86,9 +86,9 @@ class Task_Scheduler(object):
         test_workload.copy()
 
         results = test_workload.run_batch(config['topology'], config['iterations'], config['batch_size'], gpuid)
- 
+        farmer_log.info(results)
+        farmer_log.info(config) 
         request_id = config['request_id'] 
-        """
         for result in results:
             self.sql_wrapper.inert_item_in_result_reports(\
                 request_id, \
@@ -103,7 +103,6 @@ class Task_Scheduler(object):
                 result['score'],\
                 result['training images per second']
             )
-        """
         print(test_workload.raw_log_buffer)
         execute(stop_docker(container))
         return True

@@ -106,7 +106,7 @@ class Mysql_wrapper():
         try:
             inserted_sql = 'INSERT INTO result_reports\
             (RESQUEST_ID,  DOCKER_ID,  GPU_MODULE,  MAIL_ADDRESS,  FRAMEWORK,  TOPOLOGY,  BATCH_SIZE,  SOURCE,  ITERATION,  SCORE,  IMAGES_PRE_SEC) \
-      VALUES(%d,           %d,         "%s",        "%s",          "%s",       "%s",      %d,          "%s",    %d,          %f,     %f);' % \
+      VALUES("%s",         "%s",       "%s",        "%s",          "%s",       "%s",      %d,          "%s",    %d,          %f,     %f);' % \
             (resquest_id,  docker_id,  gpu_module,  mail_addr,     framework, topology,  batch_size,   source,  iteration,  score,  images_pre_sec)
             cursor.execute(inserted_sql)
             self.connection.commit()
