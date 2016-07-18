@@ -5,10 +5,10 @@ import tornado.ioloop
 import tornado.options
 import tornado.web
 import dicttoxml
+import os
 from xml.dom.minidom import parseString
 from gpu_control import *
 from task_scheduler import * 
-
 from tornado.options import define, options
 define('port', default=8000, help='run on the given port', type=int)
 
@@ -16,7 +16,7 @@ scheduler = Task_Scheduler()
 
 class TestRequest(tornado.web.RequestHandler):
     test_request_html = 'template/test_request.html'
-
+    request_id = 0
     def get(self):
         self.render(self.__class__.test_request_html, gpus = scheduler.gpu_monitor.gpulists)
 
@@ -33,7 +33,15 @@ class TestRequest(tornado.web.RequestHandler):
         options['cudnn'] = self.get_argument('CUDNN')
         options['framework'] = self.get_argument('framework')
         dom = parseString(dicttoxml.dicttoxml(options, attr_type=False))
-        print(dom.toprettyxml())
+        xml_string = dom.toprettyxml()
+        timestamp = datetime.datetime.now().strftime("%s")
+        filename = "%s_%d.xml" % (timestamp, self.__class__.request_id)
+        filepath = os.path.join('xml', filename)
+        self.__class__.request_id += 1
+        with open(filepath, 'w') as f:
+            f.write(xml_string)
+        scheduler.assign_request(filepath) 
+        print('End of Post')
 
 class TestStatus(tornado.web.RequestHandler):
     test_status_html = 'template/test_status.html'

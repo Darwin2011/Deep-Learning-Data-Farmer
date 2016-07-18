@@ -32,9 +32,11 @@ def run_docker(container, repository, tag):
 
 def stop_docker(container):
     result = sudo_wrapper("%s stop %s" % (DOCKER_COMMAND, container))
+    return result
 
 def kill_docker(container):
     result = sudo_wrapper("%s kill %s" % (DOCKER_COMMAND, container))
+    return result    
 
 def execute(command):
     #TODO

@@ -7,9 +7,12 @@ from cmd_generator import *
 from workload import Caffe_Workload
 import pandas
 import cmd_generator
+import time
 from docker_control import Docker_Monitor
+from threading import Thread
 from gpu_control import *
 
+"""
 class requests(object): 
     
     def __init__(self, gpuid, topologies, iterations, batch_size):
@@ -19,7 +22,7 @@ class requests(object):
         self.batch_size = batch_size 
         self.iterations = iterations
         self.batch_size = batch_size
-
+"""
 class Task_Scheduler(object):
 
     def __init__(self):
@@ -29,6 +32,7 @@ class Task_Scheduler(object):
         self.gpu_monitor.init_local_gpu_lists()
         self.gpu_monitor.register_listener(self)
         self.requests = [] 
+        self.prepare_env()
 
     def prepare_env(self):
         self.sql_wrapper.init_database()
@@ -47,6 +51,7 @@ class Task_Scheduler(object):
         config['gpu_id'] = gpu_device.gpuid
         config['gpu_device'] = gpu_device            
         return config
+    
  
     def assign_request(self, filepath):
         """
@@ -54,11 +59,26 @@ class Task_Scheduler(object):
         """
         config = self.parse_new_request_from_xml(filepath)
         self.requests.append(config)
-        if self.test_start(config):
-            self.requests.remove(config) 
-        
+        thread = Thread(target = self.run) 
+        thread.start()
+ 
+    def run(self):
+        print(self.requests)
+        for request in self.requests:
+            if self.request_runnable(request):
+                status = self.test_start(request)
+                if status:
+                    request['gpu_device'].blocked = False
+                self.requests.remove(request)
+                
+    
+    def request_runnable(self, config):
+        return False if config['gpu_device'].blocked else True
+       
+ 
     def test_start(self, config):
         index = self.docker_control.get_image_index(config['cuda_string'], config['cudnn_string'], config['caffe'], config['tensorflow'])
+        print(index)
         if index == -1:
             # TODO
             self.build_image()
@@ -73,11 +93,10 @@ class Task_Scheduler(object):
         test_workload = Caffe_Workload(container)
         test_workload.copy()
         test_workload.run_batch(config['topology'], config['iterations'], config['batch_size'], gpuid)
+        print(container)
         execute(stop_docker(container))
         return True
 
 if __name__ == "__main__":
     scheduler = Task_Scheduler()
-    scheduler.build_image()
-    scheduler.prepare_env()
     scheduler.assign_request('/tmp/1.xml')
