@@ -1,7 +1,7 @@
 #!usr/bin/env python
 import os
 import workload
-from xml_parser import *
+from XMLParser import *
 from MySql_wrapper import Mysql_wrapper
 from cmd_generator import *
 from workload import Caffe_Workload
@@ -16,9 +16,9 @@ from gpu_control import *
 class Task_Scheduler(object):
 
     def __init__(self):
-        self.sql_wrapper = Mysql_wrapper('localhost', 'root', 'tracing', 'animations')
+        self.sql_wrapper    = Mysql_wrapper('localhost', 'root', 'tracing', 'animations')
         self.docker_control = Docker_Monitor()
-        self.gpu_monitor = GPUMonitor()
+        self.gpu_monitor    = GPUMonitor()
         self.gpu_monitor.init_local_gpu_lists()
         self.gpu_monitor.register_listener(self)
         self.requests = [] 
@@ -42,8 +42,7 @@ class Task_Scheduler(object):
         config['gpu_id'] = gpu_device.gpuid
         config['gpu_device'] = gpu_device
         return config
-    
- 
+
     def assign_request(self, filepath):
         """
             scheduler tries to assign one request to one specified GPU
@@ -87,7 +86,7 @@ class Task_Scheduler(object):
 
         results = test_workload.run_batch(config['topology'], config['iterations'], config['batch_size'], gpuid)
 
-        request_id = config['request_id'] 
+        request_id = config['request_id']
         for result in results:
             self.sql_wrapper.inert_item_in_result_reports(\
                 request_id, \
