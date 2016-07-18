@@ -1,7 +1,7 @@
 #!usr/bin/env python
 import os
 import workload
-from XMLParser import *
+from xml_parser import *
 from MySql_wrapper import Mysql_wrapper
 from cmd_generator import *
 from workload import Caffe_Workload
@@ -87,7 +87,7 @@ class Task_Scheduler(object):
 
         results = test_workload.run_batch(config['topology'], config['iterations'], config['batch_size'], gpuid)
 
-        request_id = get_fake_request_id()
+        request_id = config['request_id'] 
         for result in results:
             self.sql_wrapper.inert_item_in_result_reports(\
                 request_id, \

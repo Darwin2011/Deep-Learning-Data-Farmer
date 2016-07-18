@@ -42,7 +42,7 @@ class TestRequest(tornado.web.RequestHandler):
         options['framework']  = self.get_argument('framework')
 
         timestamp      = datetime.datetime.now().strftime("%s")
-        request_string = '%s_%d' % (timestamp, self.__class__.request_id)
+        request_string = 'request_%s_%d' % (timestamp, self.__class__.request_id)
         options['request_id'] = request_string 
         dom = parseString(dicttoxml.dicttoxml(options, attr_type=False))
 
