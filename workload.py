@@ -58,6 +58,7 @@ class Caffe_Workload(Workload):
 
 
     def run_batch(self, topologies, iterations, batch_size, gpuid):
+        results = []
         for topology in topologies:
             if batch_size == 0:
                 bzs = self.__class__.batch_size[topology]
@@ -65,8 +66,9 @@ class Caffe_Workload(Workload):
                 bzs = batch_size 
             for bz in bzs:
                 for source in self.__class__.source:
-                    self.run_specific_config(topology, iterations, bz, gpuid, source)
-                    
+                    result_item = self.run_specific_config(topology, iterations, bz, gpuid, source)
+                    results.append(result_item)
+        return results
              
     def run_specific_config(self, topology, iterations, batch_size, gpuid, caffe_source):
         '''

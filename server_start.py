@@ -9,7 +9,8 @@ import threading
 import os
 from xml.dom.minidom import parseString
 from gpu_control import *
-from task_scheduler import * 
+from task_scheduler import *
+
 from tornado.options import define, options
 define('port', default=8000, help='run on the given port', type=int)
 
@@ -27,27 +28,31 @@ class TestRequest(tornado.web.RequestHandler):
         self.__class__.request_id += 1
         self.__class__.lock.release() 
         options = {}
-        options['email'] = self.get_argument('email')
-        batch_size = self.get_argument('batch_size')
-        options['batch_size'] = 0 if batch_size == 'auto' else batch_size 
+        options['email']      = self.get_argument('email')
+
+        batch_size            = self.get_argument('batch_size')
+        options['batch_size'] = 0 if batch_size == 'auto' else batch_size
+
         options['iterations'] = self.get_argument('iterations')
-        options['gpu_model'] = self.get_argument('gpu_model')
-        options['topology'] = self.get_argument('topology')
-        options['gpu_boost'] = self.get_argument('gpu_boost')
-        options['cuda'] = self.get_argument('CUDA')
-        options['cudnn'] = self.get_argument('CUDNN')
-        options['framework'] = self.get_argument('framework')
-        timestamp = datetime.datetime.now().strftime("%s")
+        options['gpu_model']  = self.get_argument('gpu_model')
+        options['topology']   = self.get_argument('topology')
+        options['gpu_boost']  = self.get_argument('gpu_boost')
+        options['cuda']       = self.get_argument('CUDA')
+        options['cudnn']      = self.get_argument('CUDNN')
+        options['framework']  = self.get_argument('framework')
+
+        timestamp      = datetime.datetime.now().strftime("%s")
         request_string = '%s_%d' % (timestamp, self.__class__.request_id)
         options['request_id'] = request_string 
         dom = parseString(dicttoxml.dicttoxml(options, attr_type=False))
+
         xml_string = dom.toprettyxml()
         filename = "%s_%d.xml" % (timestamp, self.__class__.request_id)
         filepath = os.path.join('xml', filename)
         with open(filepath, 'w') as f:
             f.write(xml_string)
         scheduler.assign_request(filepath)
-        self.redirect('/taskquery')
+        self.redirect('/status')
 
 class TestStatus(tornado.web.RequestHandler):
     test_status_html = 'template/test_status.html'
@@ -55,18 +60,20 @@ class TestStatus(tornado.web.RequestHandler):
     def get(self):
         self.render(self.__class__.test_status_html, gpus = scheduler.gpu_monitor.gpulists)
 
-class TestQuery(tornado.web.RequestHandler):
-    test_status_html = 'template/test_taskquery.html'
+class TestResult(tornado.web.RequestHandler):
+    test_result_html = 'template/test_result.html'
 
     def get(self):
-        self.render(self.__class__.test_status_html, gpus = scheduler.gpu_monitor.gpulists)
+        # fake to get the request id
+        request_id = "request_id"
+        self.render(self.__class__.test_result_html, results = scheduler.sql_wrapper.get_result_by_request_id(request_id))
 
 if __name__ == '__main__':
     tornado.options.parse_command_line()
     app = tornado.web.Application(handlers = [
         (r'/request', TestRequest), \
-        (r'/status', TestStatus), \
-        (r'/taskquery', TestStatus), \
+        (r'/status', TestStatus),   \
+        (r"/result", TestResult),   \
         (r'/css/(.*)', tornado.web.StaticFileHandler, {'path': 'template/css'}), \
         (r'/js/(.*)', tornado.web.StaticFileHandler, {'path': 'template/js'})
     ])

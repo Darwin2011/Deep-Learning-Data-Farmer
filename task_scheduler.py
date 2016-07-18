@@ -1,7 +1,7 @@
 #!usr/bin/env python
 import os
 import workload
-from xml_parser import *
+from XMLParser import *
 from MySql_wrapper import Mysql_wrapper
 from cmd_generator import *
 from workload import Caffe_Workload
@@ -13,17 +13,6 @@ from docker_control import Docker_Monitor
 from threading import Thread
 from gpu_control import *
 
-"""
-class requests(object): 
-    
-    def __init__(self, gpuid, topologies, iterations, batch_size):
-        self.gpuid = gpuid
-        self.topologies = topologies
-        self.iterations = iterations
-        self.batch_size = batch_size 
-        self.iterations = iterations
-        self.batch_size = batch_size
-"""
 class Task_Scheduler(object):
 
     def __init__(self):
@@ -48,7 +37,7 @@ class Task_Scheduler(object):
         config = xml_parser.parse_xml()
         gpu_device = self.gpu_monitor.get_gpu_from_model(config['gpu_model'])
         if gpu_device is None:
-            farmer_logger.error('Internal Fatal Error, Wrong GPU Model Name')
+            farmer_log.error('Internal Fatal Error, Wrong GPU Model Name')
             raise Exception('Internal Fatal Error')
         config['gpu_id'] = gpu_device.gpuid
         config['gpu_device'] = gpu_device
@@ -92,10 +81,27 @@ class Task_Scheduler(object):
         image = self.docker_control.get_image(index)
         container = get_random_container()
         execute(run_docker(container, image.repository, image.tag))
+
         test_workload = Caffe_Workload(container)
         test_workload.copy()
-        test_workload.run_batch(config['topology'], config['iterations'], config['batch_size'], gpuid)
-        print(container)
+
+        results = test_workload.run_batch(config['topology'], config['iterations'], config['batch_size'], gpuid)
+
+        request_id = get_fake_request_id()
+        for result in results:
+            self.sql_wrapper.inert_item_in_result_reports(\
+                request_id, \
+                container, \
+                gpuid, \
+                config['email'], \
+                config['framework'], \
+                result['topology'],\
+                result['batch_size'],\
+                result['source'],\
+                result['iterations'],\
+                result['score'],\
+                result['training images per second']
+            )
         execute(stop_docker(container))
         return True
 

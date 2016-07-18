@@ -51,6 +51,12 @@ def get_random_container():
     randomStamp = random.randint(10000000, 20000000)
     return "container_%s_%d" % (nowStamp, randomStamp)
 
+def get_fake_request_id():
+    now = datetime.datetime.now()
+    nowStamp = now.strftime("%Y%m%d%H%M%S")
+    randomStamp = random.randint(10000000, 20000000)
+    return "requested_id_%s_%d" % (nowStamp, randomStamp)
+
 def modify_docker():
     DOCKER_COMMAND = "docker"
 

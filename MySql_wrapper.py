@@ -2,6 +2,7 @@
 from warnings import filterwarnings
 import MySQLdb
 import farmer_log
+from common import *
 
 filterwarnings("ignore", category = MySQLdb.Warning)
 
@@ -23,8 +24,30 @@ class Mysql_wrapper():
         Returns:
         """
         cursor = self.connection.cursor()
-        create_docker_images_table_cmd  = "CREATE TABLE IF NOT EXISTS docker_images (id INT NOT NULL AUTO_INCREMENT, REPOSITORY VARCHAR(500) NOT NULL, TAG VARCHAR(500) NOT NULL,CUDA_VERSION FLOAT NOT NULL,CUDA_VERSION_STRING VARCHAR(500) NOT NULL,CUDNN_VERSION FLOAT NOT NULL,CUDNN_VERSION_STRING VARCHAR(500) NOT NULL,TENSORFLOW BOOL NOT NULL, CAFFE BOOL NOT NULL,PRIMARY KEY (id));"
-        create_result_report_table_cmd = "CREATE TABLE IF NOT EXISTS result_reports (id INT NOT NULL AUTO_INCREMENT, RESQUEST_ID INT NOT NULL, DOCKER_ID INT NOT NULL, GPU_MODULE VARCHAR(500) NOT NULL, MAIL_ADDRESS VARCHAR(500) NOT NULL, FRAMEWORK VARCHAR(500) NOT NULL, TOPOLOGY VARCHAR(500) NOT NULL, BATCH_SIZE INT NOT NULL, ITERATION INT NOT NULL, PRIMARY KEY (id));"
+        create_docker_images_table_cmd  = """CREATE TABLE IF NOT EXISTS docker_images
+        (id                   INT          NOT NULL AUTO_INCREMENT,
+         REPOSITORY           VARCHAR(500) NOT NULL,
+         TAG                  VARCHAR(500) NOT NULL,
+         CUDA_VERSION         FLOAT        NOT NULL,
+         CUDA_VERSION_STRING  VARCHAR(500) NOT NULL,
+         CUDNN_VERSION        FLOAT        NOT NULL,
+         CUDNN_VERSION_STRING VARCHAR(500) NOT NULL,
+         TENSORFLOW           BOOL         NOT NULL,
+         CAFFE                BOOL         NOT NULL,
+         PRIMARY KEY (id));"""
+        create_result_report_table_cmd = """CREATE TABLE IF NOT EXISTS result_reports
+        (id            INT          NOT NULL  AUTO_INCREMENT,
+        RESQUEST_ID    VARCHAR(500) NOT NULL,
+        DOCKER_ID      VARCHAR(500) NOT NULL,
+        GPU_MODULE     VARCHAR(500) NOT NULL,
+        MAIL_ADDRESS   VARCHAR(500) NOT NULL,
+        FRAMEWORK      VARCHAR(500) NOT NULL,
+        TOPOLOGY       VARCHAR(500) NOT NULL,
+        BATCH_SIZE     INT          NOT NULL,
+        ITERATION      INT          NOT NULL,
+        SCORE          DOUBLE       NOT NULL,
+        IMAGES_PRE_SEC DOUBLE       NOT NULL,
+        PRIMARY KEY (id));"""
 
         # execute initalizing the docker_images command
         farmer_log.info("init docker_images table : [%s]" % create_docker_images_table_cmd)
@@ -77,13 +100,13 @@ class Mysql_wrapper():
         finally:
             cursor.close()
 
-    def inert_item_in_result_reports(self, resquest_id, docker_id, gpu_module, mail_addr, framework, topology, batch_size, iteration):
+    def inert_item_in_result_reports(self, resquest_id, docker_id, gpu_module, mail_addr, framework, topology, batch_size, iteration, score, images_pre_sec):
         cursor = self.connection.cursor()
         try:
             inserted_sql = 'INSERT INTO result_reports\
-            (RESQUEST_ID,  DOCKER_ID,  GPU_MODULE,  MAIL_ADDRESS,  FRAMEWORK, TOPOLOGY,  BATCH_SIZE,  ITERATION) \
-      VALUES(%d,           %d,         "%s",        "%s",          "%s",      "%s",      %d,          %d);' % \
-            (resquest_id,  docker_id,  gpu_module,  mail_addr,     framework, topology,  batch_size,  iteration)
+            (RESQUEST_ID,  DOCKER_ID,  GPU_MODULE,  MAIL_ADDRESS,  FRAMEWORK,  TOPOLOGY,  BATCH_SIZE,  ITERATION,  SCORE,  IMAGES_PRE_SEC) \
+      VALUES(%d,           %d,         "%s",        "%s",          "%s",       "%s",      %d,          %d          %f,     %f);' % \
+            (resquest_id,  docker_id,  gpu_module,  mail_addr,     framework, topology,  batch_size,   iteration,  score,  images_pre_sec)
             cursor.execute(inserted_sql)
             self.connection.commit()
             output = cursor.fetchall()
@@ -93,6 +116,48 @@ class Mysql_wrapper():
             farmer_log.error("inert_item_in_result_report:" + e.message)
         finally:
             cursor.close()
+
+    def get_result_by_request_id(self, request_id):
+        result = []
+        cursor = self.connection.cursor()
+        try:
+            seach_image = "SELECT \
+            RESQUEST_ID,\
+            DOCKER_ID,\
+            GPU_MODULE,\
+            MAIL_ADDRESS,\
+            FRAMEWORK,\
+            TOPOLOGY,\
+            BATCH_SIZE,\
+            ITERATION,\
+            SCORE,\
+            IMAGES_PRE_SEC\
+            FROM result_reports WHERE REQUEST_ID = '%s';" % (request_id)
+            farmer_log.debug(seach_image)
+            cursor.execute(seach_image)
+            self.connection.commit()
+            rowcount = cursor.rowcount
+            farmer_log.debug("The result row count is %d" % rowcount)
+            for i in range(rowcount):
+                output = cursor.fetchone()
+                farmer_log.info(output)
+                result.append(ResultObject(output[0], \
+                                           output[1], \
+                                           output[2], \
+                                           output[3], \
+                                           output[4], \
+                                           output[5], \
+                                           output[6], \
+                                           output[7], \
+                                           output[8], \
+                                           output[9]))
+                farmer_log.info(output)
+        except Exception as e:
+            farmer_log.error("get_result_by_request_id:" + e.message)
+            cursor.rollback()
+        finally:
+            cursor.close()
+        return result
 
     def has_image_in_db_by_cuda_cuddn(self, cuda_string, cuddn_string):
         result = False

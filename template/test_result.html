@@ -1,0 +1,68 @@
+<!--Author: W3layouts
+Author URL: http://w3layouts.com
+License: Creative Commons Attribution 3.0 Unported
+License URL: http://creativecommons.org/licenses/by/3.0/
+-->
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>Property Search Widget Form Responsive Widget Template | Home :: w3layouts</title>
+<link href="css/style.css" rel="stylesheet" type="text/css" media="all"/>
+<link rel="stylesheet" type="text/css" href="css/jquery-ui.css">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+<meta name="keywords" content="Property Search Widget Form  Responsive, Login form web template, Sign up Web Templates, Flat Web Templates, Login signup Responsive web template, Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, SonyEricsson, Motorola web design" />
+<!--web-fonts-->
+<link href='//fonts.googleapis.com/css?family=Open+Sans:400,300,300italic,400italic,600,600italic,700,700italic,800,800italic' rel='stylesheet' type='text/css'></head>
+<link href='//fonts.googleapis.com/css?family=Josefin+Sans:400,100,100italic,300,300italic,400italic,600,600italic,700,700italic' rel='stylesheet' type='text/css'>
+<!-- js -->
+<script type="text/javascript" src="js/jquery-2.1.4.min.js"></script>
+<!-- //js -->
+<body>
+		<!---header--->
+		<div class="header">
+			<h1>GPU Status Panel</h1>
+		</div>
+		<!---header--->
+		<!---main--->
+			<div class="main">
+                <div class="status-section">
+                    <table>
+                        <tr>
+                            <td><h4>Request ID</h4></td>
+                            <td><h4>Docker ID</h4></td>
+                            <td><h4>GPU Module</h4></td>
+                            <td><h4>Mail Address</h4></td>
+                            <td><h4>Framework</h4></td>
+                            <td><h4>Topology</h4></td>
+                            <td><h4>Batch Size</h4></td>
+                            <td><h4>Iteration</h4></td>
+                            <td><h4>Score</h4></td>
+                            <td><h4>Training Images Pre Second</h4></td>
+                        </tr>
+                        {% for result in results %}
+                        <tr>
+                            <td>{{ result.request_id     }}</td>
+                            <td>{{ result.docker_id      }}</td>
+                            <td>{{ result.gpu_module     }}</td>
+                            <td>{{ result.mail_addr      }}</td>
+                            <td>{{ result.framework      }}</td>
+                            <td>{{ result.topology       }}</td>
+                            <td>{{ result.batch_size     }}</td>
+                            <td>{{ result.iteration      }}</td>
+                            <td>{{ result.score          }}</td>
+                            <td>{{ result.images_pre_sec }}</td>
+                        </tr>
+                        {% end%}
+                        <tr>
+                    </table>     
+                </div>
+			</div>
+			<div class="footer">
+			<p>Copyright 2016 Intel PCS. All rights reserved</a></p>
+		</div>
+
+		<!---main--->
+</body>
+</html>
