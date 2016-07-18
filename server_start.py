@@ -52,7 +52,7 @@ class TestRequest(tornado.web.RequestHandler):
         with open(filepath, 'w') as f:
             f.write(xml_string)
         scheduler.assign_request(filepath)
-        self.redirect('/status')
+        self.redirect('/result?request=%s' % request_string)
 
 class TestStatus(tornado.web.RequestHandler):
     test_status_html = 'template/test_status.html'
@@ -65,7 +65,7 @@ class TestResult(tornado.web.RequestHandler):
 
     def get(self):
         # fake to get the request id
-        request_id = "request_id"
+        request_id = self.get_argument("request")
         self.render(self.__class__.test_result_html, results = scheduler.sql_wrapper.get_result_by_request_id(request_id))
 
 if __name__ == '__main__':
