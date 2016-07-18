@@ -4,6 +4,8 @@ import re
 import sys
 import pandas
 from cmd_generator import *
+from subprocess import Popen, PIPE, STDOUT
+
 
 class Workload(object):
    
@@ -60,11 +62,12 @@ class Caffe_Workload(Workload):
 
     def run_batch(self, topologies, iterations, batch_size, gpuid):
         results = []
+        print(batch_size)
         for topology in topologies:
             if batch_size == 0:
                 bzs = self.__class__.batch_size[topology]
             else:
-                bzs = batch_size 
+                bzs = [batch_size, ]
             for bz in bzs:
                 for source in self.__class__.source:
                     result_item = self.run_specific_config(topology, iterations, bz, gpuid, source)
@@ -93,9 +96,12 @@ class Caffe_Workload(Workload):
             template = os.path.join(self.__class__.docker_caffe_bench, self.__class__.middle_dir , self.__class__.topology[topology])
             command = '%s %s %d %d %d %s' % (self.__class__.docker_run_script, template, batch_size, iterations, gpuid, caffe_source)
             command = self.sudo_docker_wrapper(command)
+            print(command)
             fp = os.popen(command)
+            #p = Popen(command, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+            #output = p.stdout.read()
             for line in fp:
-                self.raw_log_buffer.append(line)
+                #self.raw_log_buffer.extend(line)
                 m = re.match('^Score', line.strip())
                 if m is not None:
                     result['score'] = float(line.split(':')[-1])                     
@@ -127,4 +133,3 @@ if __name__ == '__main__':
     iterations = 1
     topologies = ['alexnet_group1', 'alexnet_group2'] 
     cw.run_batch(topologies, iterations, [100], 0)
-

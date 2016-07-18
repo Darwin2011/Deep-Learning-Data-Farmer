@@ -50,13 +50,15 @@ class XMLParser(object):
         self.config_dicts['iterations'] = int(self.config_dicts['iterations'])
         if self.config_dicts['topology'] == "all":
             self.config_dicts['topology'] = ['alexnet_group1', 'alexnet_group2', 'googlenet', 'vgg_19']
+        else:
+            self.config_dicts['topology'] = [self.config_dicts['topology']]
         self.config_dicts['cudnn_string'] = self.__class__.cudnn_strings[str(self.config_dicts['cudnn'])] 
         self.config_dicts['cuda_string'] = self.__class__.cuda_strings[str(self.config_dicts['cuda'])] 
         self.config_dicts['tensorflow'] = False
         self.config_dicts['caffe'] = False
         for fw in self.config_dicts['framework']:
             self.config_dicts[fw] = True
-
+        print(self.config_dicts)
 
 if __name__ == "__main__":
     xmlparser = XMLParser('/tmp/1.xml')

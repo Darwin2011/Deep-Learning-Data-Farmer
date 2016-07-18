@@ -1,7 +1,8 @@
 #!usr/bin/env python
 import os
+import sys
 import workload
-from XMLParser import *
+from xml_parser import *
 from MySql_wrapper import Mysql_wrapper
 from cmd_generator import *
 from workload import Caffe_Workload
@@ -87,6 +88,7 @@ class Task_Scheduler(object):
         results = test_workload.run_batch(config['topology'], config['iterations'], config['batch_size'], gpuid)
  
         request_id = config['request_id'] 
+        """
         for result in results:
             self.sql_wrapper.inert_item_in_result_reports(\
                 request_id, \
@@ -101,9 +103,11 @@ class Task_Scheduler(object):
                 result['score'],\
                 result['training images per second']
             )
+        """
+        print(test_workload.raw_log_buffer)
         execute(stop_docker(container))
         return True
 
 if __name__ == "__main__":
     scheduler = Task_Scheduler()
-    scheduler.assign_request('/tmp/1.xml')
+    scheduler.assign_request(sys.argv[1])

@@ -75,7 +75,7 @@ class Mysql_wrapper():
             farmer_log.info(output)
         except Exception as e:
             farmer_log.error("has_image_in_db_by_rep_tag:" + e.message)
-            cursor.rollback()
+            self.connection.rollback()
         finally:
             cursor.close()
         return result
@@ -154,7 +154,7 @@ class Mysql_wrapper():
                 farmer_log.info(output)
         except Exception as e:
             farmer_log.error("get_result_by_request_id:" + e.message)
-            cursor.rollback()
+            self.connection.rollback()
         finally:
             cursor.close()
         return result
