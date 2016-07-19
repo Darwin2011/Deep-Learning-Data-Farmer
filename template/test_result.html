@@ -1,4 +1,6 @@
 <!--Author: W3layouts
+t
+t
 Author URL: http://w3layouts.com
 License: Creative Commons Attribution 3.0 Unported
 License URL: http://creativecommons.org/licenses/by/3.0/
@@ -18,7 +20,22 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 <link href='//fonts.googleapis.com/css?family=Josefin+Sans:400,100,100italic,300,300italic,400italic,600,600italic,700,700italic' rel='stylesheet' type='text/css'>
 <!-- js -->
 <script type="text/javascript" src="js/jquery-2.1.4.min.js"></script>
-<!-- //js -->
+<script type="text/javascript">
+
+var xml_request = new XMLHttpRequest();
+xml_request.onreadystatechange = function() {
+    document.getElementById('rawbuffer').value = xml_request.responseText;
+};
+
+function get_raw_log() {
+    setInterval(
+        function(){
+            xml_request.open("GET", "http://10.239.44.54:8000/rawlogbuffer?request={{ request }}", true);
+            xml_request.send();
+        }, 500);
+};
+window.onload = get_raw_log;
+</script>
 <body>
 		<!---header--->
 		<div class="header">
@@ -57,7 +74,12 @@ License URL: http://creativecommons.org/licenses/by/3.0/
                         </tr>
                         {% end%}
                         <tr>
-                    </table>     
+                    </table>
+                    <div>
+                    <textarea rows="50" cols="100" id="rawbuffer">
+                    {{ buffer_log }}
+                    </textarea>
+                    </div> 
                 </div>
 			</div>
 			<div class="footer">

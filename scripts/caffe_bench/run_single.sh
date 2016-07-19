@@ -1,5 +1,5 @@
 #!/bin/bash
-set -x
+#set -x
 
 cd /home/caffe/caffe_bench
 
@@ -27,12 +27,12 @@ fi;
 
 mkdir -p ${log_dir}
 sed -e "s/BATCH_SIZE/${batch_size}/g" ${template_name} > deploy.prototxt
-$Caffe_BIN time --model=deploy.prototxt --iterations=${iterations} --gpu ${gpuid} > ./${log_dir}/${template_filename}_${batch_size}".log" 2>&1
-mv deploy.prototxt ./${log_dir}/${template_filename}_${batch_size}_deploy.prototxt
+$Caffe_BIN time --model=deploy.prototxt --iterations=${iterations} --gpu ${gpuid} #> ./${log_dir}/${template_filename}_${batch_size}".log" 2>&1
+#mv deploy.prototxt ./${log_dir}/${template_filename}_${batch_size}_deploy.prototxt
 
-average_forward=`cat ./${log_dir}/${template_filename}_${batch_size}".log" | grep "Average Forward pass" | awk '{print $(NF-1)}'`
-average_backward=`cat ./${log_dir}/${template_filename}_${batch_size}".log" | grep "Average Backward pass" | awk '{print $(NF-1)}'`
-score=`echo $average_forward $batch_size | awk '{print 1000.0 * $2 / $1}'`
-training_image_per_second=`echo $average_forward $average_backward $batch_size | awk '{print 1000.0 * $3 / ($1 + $2)}'`
-echo "Score : "${score}
-echo "Training Images Per Second : "${training_image_per_second}
+#average_forward=`cat ./${log_dir}/${template_filename}_${batch_size}".log" | grep "Average Forward pass" | awk '{print $(NF-1)}'`
+#average_backward=`cat ./${log_dir}/${template_filename}_${batch_size}".log" | grep "Average Backward pass" | awk '{print $(NF-1)}'`
+#score=`echo $average_forward $batch_size | awk '{print 1000.0 * $2 / $1}'`
+#training_image_per_second=`echo $average_forward $average_backward $batch_size | awk '{print 1000.0 * $3 / ($1 + $2)}'`
+#echo "Score : "${score}
+#echo "Training Images Per Second : "${training_image_per_second}

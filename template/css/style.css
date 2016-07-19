@@ -10,6 +10,9 @@ article, aside, details, figcaption, figure,footer, header, hgroup, menu, nav, s
 ol,ul{list-style:none;margin:0px;padding:0px;}
 blockquote,q{quotes:none;}
 blockquote:before,blockquote:after,q:before,q:after{content:'';content:none;}
+textarea {
+  width: 100%;
+}
 th {
   border: 1px solid lightgray;
   text-align: center;

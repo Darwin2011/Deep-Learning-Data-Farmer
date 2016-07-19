@@ -66,7 +66,18 @@ class TestResult(tornado.web.RequestHandler):
     def get(self):
         # fake to get the request id
         request_id = self.get_argument("request")
-        self.render(self.__class__.test_result_html, results = scheduler.sql_wrapper.get_result_by_request_id(request_id))
+        self.render(self.__class__.test_result_html, results = scheduler.sql_wrapper.get_result_by_request_id(request_id), buffer_log = scheduler.raw_logs_buffers[request_id], request = request_id)
+
+
+class TestRawLogResponse(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    def get(self):
+        request_id = self.get_argument("request")
+        self.write(str(scheduler.raw_logs_buffers[request_id]))
+        self.finish()
+
+
+
 
 if __name__ == '__main__':
     tornado.options.parse_command_line()
@@ -74,6 +85,8 @@ if __name__ == '__main__':
         (r'/request', TestRequest), \
         (r'/status', TestStatus),   \
         (r"/result", TestResult),   \
+        (r"/rawlogbuffer", TestRawLogResponse),   \
+        (r"/rawlog", TestRawLogResponse),   \
         (r'/css/(.*)', tornado.web.StaticFileHandler, {'path': 'template/css'}), \
         (r'/js/(.*)', tornado.web.StaticFileHandler, {'path': 'template/js'})
     ])

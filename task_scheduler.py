@@ -22,7 +22,8 @@ class Task_Scheduler(object):
         self.gpu_monitor    = GPUMonitor()
         self.gpu_monitor.init_local_gpu_lists()
         self.gpu_monitor.register_listener(self)
-        self.requests = [] 
+        self.requests = []
+        self.raw_logs_buffers = {} 
         self.prepare_env()
         self.lock = threading.Lock()
 
@@ -58,6 +59,7 @@ class Task_Scheduler(object):
     def run(self):
         for request in self.requests:
             if self.request_runnable(request):
+                self.raw_logs_buffers[request['request_id']] = bytearray()
                 status = self.test_start(request)
                 if status:
                     request['gpu_device'].blocked = False
@@ -77,15 +79,13 @@ class Task_Scheduler(object):
             # docker control inert docker_image_info into database
             index = self.docker_control.get_image_index(config['cuda_string'], config['cudnn_string'], config['caffe'], config['tensorflow'])
         #gpuid = config['gpu_id'] 
-        gpuid = 1
+        gpuid = 2
         image = self.docker_control.get_image(index)
         container = get_random_container()
         execute(run_docker(container, image.repository, image.tag))
-
         test_workload = Caffe_Workload(container)
         test_workload.copy()
-
-        results = test_workload.run_batch(config['topology'], config['iterations'], config['batch_size'], gpuid)
+        results = test_workload.run_batch(config['topology'], config['iterations'], config['batch_size'], gpuid, self.raw_logs_buffers[config['request_id']])
         farmer_log.info(results)
         farmer_log.info(config) 
         request_id = config['request_id'] 
@@ -103,10 +103,11 @@ class Task_Scheduler(object):
                 result['score'],\
                 result['training images per second']
             )
-        print(test_workload.raw_log_buffer)
         execute(stop_docker(container))
         return True
 
 if __name__ == "__main__":
     scheduler = Task_Scheduler()
     scheduler.assign_request(sys.argv[1])
+    print("print buffer")
+    print(scheduler.raw_logs_buffers)

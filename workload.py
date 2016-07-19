@@ -43,7 +43,6 @@ class Caffe_Workload(Workload):
 
     def __init__(self, container):
         super(Caffe_Workload, self).__init__(container)
-        self.raw_log_buffer = bytearray() 
 
     def sudo_docker_wrapper(self, command):
         return 'sudo docker exec %s %s' % (self.container, command)
@@ -60,9 +59,8 @@ class Caffe_Workload(Workload):
         pass
 
 
-    def run_batch(self, topologies, iterations, batch_size, gpuid):
+    def run_batch(self, topologies, iterations, batch_size, gpuid, raw_buffer):
         results = []
-        print(batch_size)
         for topology in topologies:
             if batch_size == 0:
                 bzs = self.__class__.batch_size[topology]
@@ -70,11 +68,11 @@ class Caffe_Workload(Workload):
                 bzs = [batch_size, ]
             for bz in bzs:
                 for source in self.__class__.source:
-                    result_item = self.run_specific_config(topology, iterations, bz, gpuid, source)
+                    result_item = self.run_specific_config(topology, iterations, bz, gpuid, source, raw_buffer)
                     results.append(result_item)
         return results
              
-    def run_specific_config(self, topology, iterations, batch_size, gpuid, caffe_source):
+    def run_specific_config(self, topology, iterations, batch_size, gpuid, caffe_source, raw_buffer):
         '''
             
 	        Args:
@@ -96,19 +94,22 @@ class Caffe_Workload(Workload):
             template = os.path.join(self.__class__.docker_caffe_bench, self.__class__.middle_dir , self.__class__.topology[topology])
             command = '%s %s %d %d %d %s' % (self.__class__.docker_run_script, template, batch_size, iterations, gpuid, caffe_source)
             command = self.sudo_docker_wrapper(command)
-            #fp = os.popen(command)
-            p = Popen(command, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-            output = p.stdout.read()
-            for line in fp:
-                self.raw_log_buffer.extend(line)
-                m = re.match('^Score', line.strip())
+            fp = Popen(command, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+            while True:
+                line = fp.stdout.readline()
+                raw_buffer.extend(line)
+                m = re.match('.*Average Forward pass.*', line.strip())
                 if m is not None:
-                    result['score'] = float(line.split(':')[-1])                     
-                m = re.match('^Training Images Per Second', line.strip())
+                    result['Average Forward pass'] = float(line.split(' ')[-2])
+                m = re.match('.*Average Backward pass.*', line.strip())
                 if m is not None:
-                    result['training images per second'] = float(line.split(':')[-1])
-            return result
-
+                    result['Average Backward pass'] = float(line.split(' ')[-2])
+                if line == '' and fp.poll() != None:
+                    break
+            result['score'] = 1000.0 * batch_size / result['Average Forward pass'] 
+            result['training images per second'] = 1000.0 * batch_size / (result['Average Backward pass'] + result['Average Forward pass'])
+        return result
+    
     def merge_result(self, result1, result2):
         if result1['topology'] == result2['topology'] and \
             result1['batch_size'] == result2['batch_size'] and \
