@@ -37,7 +37,7 @@ class Mysql_wrapper():
          PRIMARY KEY (id));"""
         create_result_report_table_cmd = """CREATE TABLE IF NOT EXISTS result_reports
         (id            INT          NOT NULL  AUTO_INCREMENT,
-        RESQUEST_ID    VARCHAR(500) NOT NULL,
+        REQUEST_ID    VARCHAR(500) NOT NULL,
         DOCKER_ID      VARCHAR(500) NOT NULL,
         GPU_MODULE     VARCHAR(500) NOT NULL,
         MAIL_ADDRESS   VARCHAR(500) NOT NULL,
@@ -105,7 +105,7 @@ class Mysql_wrapper():
         cursor = self.connection.cursor()
         try:
             inserted_sql = 'INSERT INTO result_reports\
-            (RESQUEST_ID,  DOCKER_ID,  GPU_MODULE,  MAIL_ADDRESS,  FRAMEWORK,  TOPOLOGY,  BATCH_SIZE,  SOURCE,  ITERATION,  SCORE,  IMAGES_PRE_SEC) \
+            (REQUEST_ID,  DOCKER_ID,  GPU_MODULE,  MAIL_ADDRESS,  FRAMEWORK,  TOPOLOGY,  BATCH_SIZE,  SOURCE,  ITERATION,  SCORE,  IMAGES_PRE_SEC) \
       VALUES("%s",         "%s",       "%s",        "%s",          "%s",       "%s",      %d,          "%s",    %d,          %f,     %f);' % \
             (resquest_id,  docker_id,  gpu_module,  mail_addr,     framework, topology,  batch_size,   source,  iteration,  score,  images_pre_sec)
             cursor.execute(inserted_sql)
@@ -123,7 +123,7 @@ class Mysql_wrapper():
         cursor = self.connection.cursor()
         try:
             seach_image = "SELECT \
-            RESQUEST_ID, \
+            REQUEST_ID, \
             DOCKER_ID, \
             GPU_MODULE, \
             MAIL_ADDRESS, \
@@ -152,8 +152,8 @@ class Mysql_wrapper():
                                            output[6], \
                                            output[7], \
                                            output[8], \
-                                           output[9], \
-                                           output[10]))
+                                           "%.2f" % output[9], \
+                                           "%.2f" % output[10]))
                 farmer_log.info(output)
         except Exception as e:
             farmer_log.error("get_result_by_request_id:" + e.message)

@@ -66,7 +66,7 @@ class TestResult(tornado.web.RequestHandler):
     def get(self):
         # fake to get the request id
         request_id = self.get_argument("request")
-        self.render(self.__class__.test_result_html, results = scheduler.sql_wrapper.get_result_by_request_id(request_id), buffer_log = scheduler.requests[request_id]['raw_buffer'], request = request_id)
+        self.render(self.__class__.test_result_html, results = scheduler.sql_wrapper.get_result_by_request_id(request_id), buffer_log = scheduler.requests[request_id]['raw_buffer'], request = request_id, state = str(scheduler.requests[request_id]['state']))
 
 
 class TestRawLogResponse(tornado.web.RequestHandler):

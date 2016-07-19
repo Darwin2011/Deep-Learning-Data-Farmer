@@ -101,7 +101,7 @@ class Task_Scheduler(object):
                 container, \
                 gpuid, \
                 config['email'], \
-                config['framework'], \
+                result['framework'], \
                 result['topology'],\
                 result['batch_size'],\
                 result['source'],\

@@ -41,7 +41,8 @@ class XMLParser(object):
     def update_as_rules(self):
         if self.config_dicts['framework'] == 'all':
             self.config_dicts['framework'] = ['tensorflow', 'caffe']
-        self.config_dicts['framework'] = [self.config_dicts['framework']]
+        else:
+            self.config_dicts['framework'] = [self.config_dicts['framework'], ]
         if self.config_dicts['batch_size'] == 'default':
             self.config_dicts['batch_size'] = 0
         self.config_dicts['batch_size'] = int(self.config_dicts['batch_size'])

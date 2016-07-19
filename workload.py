@@ -86,6 +86,7 @@ class Caffe_Workload(Workload):
         '''
 	
         result = {}
+        result['framework'] = 'Caffe'
         result['topology'] = topology
         result['batch_size'] = batch_size
         result['source'] = caffe_source

@@ -66,23 +66,25 @@ window.onload = timer;
 		<!---main--->
 			<div class="main">
                 <div class="status-section">
+                    {% if state == "Finish" %}
                     <table>
                         <tr>
-                            <td><h4>Request ID</h4></td>
-                            <td><h4>Docker ID</h4></td>
-                            <td><h4>GPU Module</h4></td>
+                            <!-- <td><h4>Request ID</h4></td> -->
+                            <!-- <td><h4>Docker ID</h4></td> -->
+                            <td><h4>GPU Model</h4></td>
                             <td><h4>Mail Address</h4></td>
                             <td><h4>Framework</h4></td>
                             <td><h4>Topology</h4></td>
                             <td><h4>Batch Size</h4></td>
+                            <td><h4>Source</h4></td>
                             <td><h4>Iteration</h4></td>
                             <td><h4>Score</h4></td>
                             <td><h4>Training Images Pre Second</h4></td>
                         </tr>
                         {% for result in results %}
                         <tr>
-                            <td>{{ result.request_id     }}</td>
-                            <td>{{ result.docker_id      }}</td>
+                         <!---   <td>{{ result.request_id     }}</td>
+                            <td>{{ result.docker_id      }}</td> --->
                             <td>{{ result.gpu_module     }}</td>
                             <td>{{ result.mail_addr      }}</td>
                             <td>{{ result.framework      }}</td>
@@ -93,9 +95,10 @@ window.onload = timer;
                             <td>{{ result.score          }}</td>
                             <td>{{ result.images_pre_sec }}</td>
                         </tr>
-                        {% end%}
+                        {% end %}
                         <tr>
                     </table>
+                    {% end %}
                     <div>
                     <textarea rows="20" cols="100" id="rawbuffer">
                     {{ buffer_log }}
