@@ -22,21 +22,40 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 <script type="text/javascript" src="js/jquery-2.1.4.min.js"></script>
 <script type="text/javascript">
 
-var xml_request = new XMLHttpRequest();
-xml_request.onreadystatechange = function() {
+var log_request = new XMLHttpRequest();
+var state_request = new XMLHttpRequest();
+var refresh = false;
+log_request.onreadystatechange = function() {
     rawbuffer = document.getElementById('rawbuffer');
-    rawbuffer.value = xml_request.responseText;
+    rawbuffer.value = log_request.responseText;
     rawbuffer.scrollTop = rawbuffer.scrollHeight;
 };
 
-function get_raw_log() {
+function timer() {
     setInterval(
         function(){
-            xml_request.open("GET", "http://10.239.44.54:8000/rawlogbuffer?request={{ request }}", true);
-            xml_request.send();
-        }, 500);
+            state_request.open('GET', "/requeststate?request={{ request }}", false)
+            state_request.send();
+            state = state_request.responseText;
+            
+            if (state == "Running") {
+                log_request.open("GET", "/rawlogbuffer?request={{ request }}", true);
+                log_request.send();
+                refresh = true;            
+            }
+
+            if (state == "Finish" && refresh) {
+                if (refresh) {
+                    log_request.open("GET", "/rawlogbuffer?request={{ request }}", true);
+                    log_request.send();
+                } 
+                refresh = false;
+                window.location.replace("/result?request={{ request }}");
+            }
+
+        }, 1000);
 };
-window.onload = get_raw_log;
+window.onload = timer;
 </script>
 <body>
 		<!---header--->
@@ -78,7 +97,7 @@ window.onload = get_raw_log;
                         <tr>
                     </table>
                     <div>
-                    <textarea rows="50" cols="100" id="rawbuffer">
+                    <textarea rows="20" cols="100" id="rawbuffer">
                     {{ buffer_log }}
                     </textarea>
                     </div> 

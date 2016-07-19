@@ -76,14 +76,13 @@ class TestRawLogResponse(tornado.web.RequestHandler):
         self.write(str(scheduler.requests[request_id]['raw_buffer']))
         self.finish()
 
-"""
 class RequestState(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     def get(self):
         request_id = self.get_argument("request")
-        self.write(str(scheduler.))
+        self.write(str(scheduler.requests[request_id]["state"]))
         self.finish()
-"""
+
 
 if __name__ == '__main__':
     tornado.options.parse_command_line()
@@ -91,8 +90,9 @@ if __name__ == '__main__':
         (r'/request', TestRequest), \
         (r'/status', TestStatus),   \
         (r"/result", TestResult),   \
-        (r"/rawlogbuffer", TestRawLogResponse),   \
         (r"/rawlog", TestRawLogResponse),   \
+        (r"/rawlogbuffer", TestRawLogResponse),   \
+        (r"/requeststate", RequestState),   \
         (r'/css/(.*)', tornado.web.StaticFileHandler, {'path': 'template/css'}), \
         (r'/js/(.*)', tornado.web.StaticFileHandler, {'path': 'template/js'})
     ])
