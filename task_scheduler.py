@@ -13,6 +13,9 @@ import threading
 from docker_control import Docker_Monitor
 from threading import Thread
 from gpu_control import *
+from enum import Enum
+
+TASK_STATE = Enum("Pendding", "Running", "Finish")
 
 class Task_Scheduler(object):
 
@@ -22,8 +25,7 @@ class Task_Scheduler(object):
         self.gpu_monitor    = GPUMonitor()
         self.gpu_monitor.init_local_gpu_lists()
         self.gpu_monitor.register_listener(self)
-        self.requests = []
-        self.raw_logs_buffers = {} 
+        self.requests = {}
         self.prepare_env()
         self.lock = threading.Lock()
 
@@ -51,19 +53,22 @@ class Task_Scheduler(object):
         """
         self.lock.acquire()
         config = self.parse_new_request_from_xml(filepath)
-        self.requests.append(config)
+        config["state"] = TASK_STATE.Pendding
+        config['raw_buffer'] = bytearray()
+        self.requests[config['request_id']] = config
         self.lock.release()
         thread = Thread(target = self.run) 
         thread.start()
  
     def run(self):
-        for request in self.requests:
+        for key in self.requests.keys():
+            request = self.requests[key]
             if self.request_runnable(request):
-                self.raw_logs_buffers[request['request_id']] = bytearray()
                 status = self.test_start(request)
                 if status:
                     request['gpu_device'].blocked = False
-                self.requests.remove(request)
+                #can be poped after inserting into database
+                #self.requests.pop(request['request_id'], None)
                 
     
     def request_runnable(self, config):
@@ -82,10 +87,11 @@ class Task_Scheduler(object):
         gpuid = 2
         image = self.docker_control.get_image(index)
         container = get_random_container()
+        config["state"] = TASK_STATE.Running
         execute(run_docker(container, image.repository, image.tag))
         test_workload = Caffe_Workload(container)
         test_workload.copy()
-        results = test_workload.run_batch(config['topology'], config['iterations'], config['batch_size'], gpuid, self.raw_logs_buffers[config['request_id']])
+        results = test_workload.run_batch(config['topology'], config['iterations'], config['batch_size'], gpuid, config['raw_buffer'])
         farmer_log.info(results)
         farmer_log.info(config) 
         request_id = config['request_id'] 
@@ -104,10 +110,10 @@ class Task_Scheduler(object):
                 result['training images per second']
             )
         execute(stop_docker(container))
+        config["state"] = TASK_STATE.Finish
         return True
 
 if __name__ == "__main__":
     scheduler = Task_Scheduler()
     scheduler.assign_request(sys.argv[1])
     print("print buffer")
-    print(scheduler.raw_logs_buffers)
