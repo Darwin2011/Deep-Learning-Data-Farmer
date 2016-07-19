@@ -24,7 +24,9 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 
 var xml_request = new XMLHttpRequest();
 xml_request.onreadystatechange = function() {
-    document.getElementById('rawbuffer').value = xml_request.responseText;
+    rawbuffer = document.getElementById('rawbuffer');
+    rawbuffer.value = xml_request.responseText;
+    rawbuffer.scrollTop = rawbuffer.scrollHeight;
 };
 
 function get_raw_log() {

@@ -77,6 +77,12 @@ class TestRawLogResponse(tornado.web.RequestHandler):
         self.finish()
 
 
+class RequestState(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    def get(self):
+        request_id = self.get_argument("request")
+        self.write(str(scheduler.))
+        self.finish()
 
 
 if __name__ == '__main__':
