@@ -44,7 +44,6 @@ class Mysql_wrapper():
          FRAMEWORK       VARCHAR(500) NOT NULL,
          TOPOLOGY        VARCHAR(500) NOT NULL,
          BATCH_SIZE      VARCHAR(500) NOT NULL,
-         SOURCE          VARCHAR(500) NOT NULL,
          ITERATION       VARCHAR(500) NOT NULL,
          REQUEST_TIME    DATETIME     NOT NULL DEFAULT NOW(),
          PRIMARY KEY (id));"""
@@ -121,13 +120,13 @@ class Mysql_wrapper():
 
     def inert_item_in_request_reports(self, resquest_id, docker_id, gpu_model, \
                                       mail_addr, framework, topology, \
-                                      batch_size, source, iteration):
+                                      batch_size, iteration):
         cursor = self.connection.cursor()
         try:
             inserted_sql = 'INSERT INTO request_reports\
-            (REQUEST_ID,   DOCKER_ID,  GPU_MODEL,  MAIL_ADDRESS,  FRAMEWORK,  TOPOLOGY,  BATCH_SIZE,  SOURCE,   ITERATION) \
-      VALUES("%s",         "%s",       "%s",       "%s",          "%s",       "%s",      "%s",        "%s",     "%s");' % \
-            (resquest_id,  docker_id,  gpu_model,  mail_addr,     framework,  topology,  batch_size,   source,  iteration)
+            (REQUEST_ID,   DOCKER_ID,  GPU_MODEL,  MAIL_ADDRESS,  FRAMEWORK,  TOPOLOGY,  BATCH_SIZE,   ITERATION) \
+      VALUES("%s",         "%s",       "%s",       "%s",          "%s",       "%s",      "%s",         "%s");' % \
+            (resquest_id,  docker_id,  gpu_model,  mail_addr,     framework,  topology,  batch_size,   iteration)
             cursor.execute(inserted_sql)
             self.connection.commit()
             output = cursor.fetchall()
@@ -162,7 +161,7 @@ class Mysql_wrapper():
         cursor = self.connection.cursor()
         try:
             seach_image = "SELECT REQUEST_ID, DOCKER_ID, GPU_MODULE, MAIL_ADDRESS, FRAMEWORK, " \
-                          "TOPOLOGY, BATCH_SIZE, SOURCE, ITERATION REQUEST_TIME " \
+                          "TOPOLOGY, BATCH_SIZE, ITERATION REQUEST_TIME " \
                           "FROM request_reports;"
             farmer_log.debug(seach_image)
             cursor.execute(seach_image)
@@ -180,8 +179,7 @@ class Mysql_wrapper():
                                            output[5], \
                                            output[6], \
                                            output[7], \
-                                           output[8], \
-                                           output[9]))
+                                           output[8]))
                 farmer_log.info(output)
         except Exception as e:
             farmer_log.error("get_request_reports:" + e.message)

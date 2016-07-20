@@ -31,7 +31,7 @@ class RequestObject(object):
 
     def __init__(self, request_id, docker_id, gpu_model,\
                  mail_addr, framework, topology, batch_size, \
-                 source, iteration, request_time):
+                 iteration, request_time):
         self.request_id     = request_id
         self.docker_id      = docker_id
         self.gpu_model      = gpu_model
@@ -39,6 +39,5 @@ class RequestObject(object):
         self.framework      = framework
         self.topology       = topology
         self.batch_size     = batch_size
-        self.source         = source
         self.iteration      = iteration
         self.request_time   = request_time

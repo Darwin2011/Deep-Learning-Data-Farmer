@@ -96,7 +96,7 @@ class Task_Scheduler(object):
         request_id = config['request_id']
         self.sql_wrapper.inert_item_in_request_reports(request_id, container,
            config["gpu_model"], config["email"], config["framework"],
-           config["topology"], config["batch_size"], config["source"], config["iteration"])
+           config["topology"], config["batch_size"], config["iteration"])
         for result in results:
             self.sql_wrapper.inert_item_in_result_reports(\
                 request_id, \
