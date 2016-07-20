@@ -198,8 +198,7 @@ class Mysql_wrapper():
             seach_image = "SELECT \
             REQUEST_ID, \
             DOCKER_ID, \
-            GPU_MODULE, \
-            MAIL_ADDRESS, \
+            GPU_MODEL, \
             FRAMEWORK, \
             TOPOLOGY, \
             BATCH_SIZE, \
@@ -224,9 +223,8 @@ class Mysql_wrapper():
                                            output[5], \
                                            output[6], \
                                            output[7], \
-                                           output[8], \
-                                           "%.2f" % output[9], \
-                                           "%.2f" % output[10]))
+                                           "%.2f" % output[8], \
+                                           "%.2f" % output[9]))
                 farmer_log.info(output)
         except Exception as e:
             farmer_log.error("get_result_by_request_id:" + e.message)
