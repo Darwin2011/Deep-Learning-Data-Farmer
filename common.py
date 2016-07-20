@@ -13,13 +13,12 @@ class requests(object):
 
 class ResultObject(object):
 
-    def __init__(self, request_id, docker_id, gpu_module,\
+    def __init__(self, request_id, docker_id, gpu_model,\
                  mail_addr, framework, topology, batch_size, \
                  source, iteration, score, images_pre_sec):
         self.request_id     = request_id
         self.docker_id      = docker_id
-        self.gpu_module     = gpu_module
-        self.mail_addr      = mail_addr
+        self.gpu_model      = gpu_model
         self.framework      = framework
         self.topology       = topology
         self.batch_size     = batch_size
@@ -27,3 +26,19 @@ class ResultObject(object):
         self.iteration      = iteration
         self.score          = score
         self.images_pre_sec = images_pre_sec
+
+class RequestObject(object):
+
+    def __init__(self, request_id, docker_id, gpu_model,\
+                 mail_addr, framework, topology, batch_size, \
+                 source, iteration, request_time):
+        self.request_id     = request_id
+        self.docker_id      = docker_id
+        self.gpu_model      = gpu_model
+        self.mail_addr      = mail_addr
+        self.framework      = framework
+        self.topology       = topology
+        self.batch_size     = batch_size
+        self.source         = source
+        self.iteration      = iteration
+        self.request_time   = request_time

@@ -46,6 +46,8 @@ class TestRequest(tornado.web.RequestHandler):
         options['request_id'] = request_string 
         dom = parseString(dicttoxml.dicttoxml(options, attr_type=False))
 
+        if not os.path.exists("./xml"):
+            os.mkdir("./xml")
         xml_string = dom.toprettyxml()
         filename = "%s_%d.xml" % (timestamp, self.__class__.request_id)
         filepath = os.path.join('xml', filename)
