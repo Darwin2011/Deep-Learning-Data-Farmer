@@ -62,6 +62,12 @@ class TestStatus(tornado.web.RequestHandler):
     def get(self):
         self.render(self.__class__.test_status_html, gpus = scheduler.gpu_monitor.gpulists)
 
+class TestHistory(tornado.web.RequestHandler):
+    test_history_html = 'template/test_history.html'
+
+    def get(self):
+        self.render(self.__class__.test_history_html, request_reports = scheduler.sql_wrapper.get_request_reports())
+
 class TestResult(tornado.web.RequestHandler):
     test_result_html = 'template/test_result.html'
 
@@ -97,15 +103,16 @@ class GPUState(tornado.web.RequestHandler):
 if __name__ == '__main__':
     tornado.options.parse_command_line()
     app = tornado.web.Application(handlers = [
-        (r'/request', TestRequest), \
-        (r'/status', TestStatus),   \
-        (r"/result", TestResult),   \
-        (r"/rawlog", TestRawLogResponse),   \
+        (r'/request',      TestRequest),          \
+        (r'/status',       TestStatus),           \
+        (r"/result",       TestResult),           \
+        (r"/rawlog",       TestRawLogResponse),   \
         (r"/rawlogbuffer", TestRawLogResponse),   \
-        (r"/requeststate", RequestState),   \
-        (r"/gpustate", GPUState),   \
-        (r'/css/(.*)', tornado.web.StaticFileHandler, {'path': 'template/css'}), \
-        (r'/js/(.*)', tornado.web.StaticFileHandler, {'path': 'template/js'})
+        (r"/requeststate", RequestState),         \
+        (r"/gpustate",     GPUState),             \
+        (r"/history",      TestHistory),          \
+        (r'/css/(.*)',     tornado.web.StaticFileHandler, {'path': 'template/css'}), \
+        (r'/js/(.*)',      tornado.web.StaticFileHandler, {'path': 'template/js'})
     ])
     http_server = tornado.httpserver.HTTPServer(app)
     http_server.listen(options.port)
