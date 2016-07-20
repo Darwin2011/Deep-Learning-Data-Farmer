@@ -102,7 +102,6 @@ class Task_Scheduler(object):
                 request_id, \
                 container, \
                 gpuid, \
-                config['email'], \
                 result['framework'], \
                 result['topology'],\
                 result['batch_size'],\
