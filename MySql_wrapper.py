@@ -72,7 +72,7 @@ class Mysql_wrapper():
 
         # execute initalizing the request_reports command
         farmer_log.info("init request_reports table : [%s]" % create_request_reports_table_cmd)
-        cursor.execute(create_result_report_table_cmd)
+        cursor.execute(create_request_reports_table_cmd)
         farmer_log.info(cursor.fetchall())
 
         # execute initalizing the result_reports command
