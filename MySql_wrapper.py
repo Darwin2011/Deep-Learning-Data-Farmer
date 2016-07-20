@@ -37,7 +37,7 @@ class Mysql_wrapper():
          PRIMARY KEY (id));"""
 
         create_request_reports_table_cmd = """CREATE TABLE IF NOT EXISTS request_reports
-        (id              INT          NOT NULL AUTO_INCERMENT,
+        (id              INT          NOT NULL AUTO_INCREMENT,
          REQUEST_ID      VARCHAR(500) NOT NULL,
          MAIL_ADDRESS    VARCHAR(500) NOT NULL,
          GPU_MODEL       VARCHAR(500) NOT NULL,
