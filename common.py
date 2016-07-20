@@ -14,11 +14,12 @@ class requests(object):
 class ResultObject(object):
 
     def __init__(self, request_id, docker_id, gpu_model,\
-                 framework, topology, batch_size, \
+                 email, framework, topology, batch_size, \
                  source, iteration, score, images_pre_sec):
         self.request_id     = request_id
         self.docker_id      = docker_id
         self.gpu_model      = gpu_model
+        self.email          = email
         self.framework      = framework
         self.topology       = topology
         self.batch_size     = batch_size

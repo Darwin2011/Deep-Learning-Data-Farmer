@@ -191,8 +191,19 @@ class Mysql_wrapper():
     def get_result_by_request_id(self, request_id):
         result = []
         cursor = self.connection.cursor()
+        email = ""
         try:
-            seach_image = "SELECT \
+            search_email = "SELECT MAIL_ADDRESS FROM request_reports WHERE REQUEST_ID = '%s';" % (request_id)
+            cursor.execute(search_email)
+            self.connection.commit()
+            if cursor.rowcount == 1:
+                email = cursor.fetchone()
+            else:
+
+                farmer_log.error("The request email have wrong number. The rowcount[%d]" % cursor.rowcount)
+                farmer_log.error(cursor.fetchall())
+
+            search_image = "SELECT \
             REQUEST_ID, \
             DOCKER_ID, \
             GPU_MODEL, \
@@ -204,9 +215,10 @@ class Mysql_wrapper():
             SCORE,\
             IMAGES_PRE_SEC \
             FROM result_reports WHERE REQUEST_ID = '%s';" % (request_id)
-            farmer_log.debug(seach_image)
-            cursor.execute(seach_image)
+            farmer_log.debug(search_image)
+            cursor.execute(search_image)
             self.connection.commit()
+
             rowcount = cursor.rowcount
             farmer_log.debug("The result row count is %d" % rowcount)
             for i in range(rowcount):
@@ -214,6 +226,7 @@ class Mysql_wrapper():
                 farmer_log.info(output)
                 result.append(ResultObject(output[0], \
                                            output[1], \
+                                           email,
                                            output[2], \
                                            output[3], \
                                            output[4], \
