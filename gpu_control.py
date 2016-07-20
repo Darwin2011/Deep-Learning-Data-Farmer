@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import re
 import os
+import json
 from enum import Enum
 
 class GPUProcess(object):
@@ -230,7 +231,20 @@ class GPUDevice(object):
             gp.set_info(pid, command, sm, mem)
             self.processes.append(gp)
         return self.processes 
-   
+  
+    def get_status_as_json(self):
+        status = {}
+        status['gpu_model'] = self.gpu_model
+        status['instant_core_freq'] = self.get_core_frequency(self.__class__.graphics_mode.INSTANT)
+        status['instant_mem_freq'] = self.get_memory_frequency(self.__class__.graphics_mode.INSTANT)
+        status['application_core_freq'] = self.get_core_frequency(self.__class__.graphics_mode.APPLICATION)
+        status['application_mem_freq'] = self.get_memory_frequency(self.__class__.graphics_mode.APPLICATION)
+        status['autoboost'] = 'On' if self.get_autoboost() else 'Off'
+        status['sm_utilization'] = "%.2f" % self.get_sm_utilization()
+        status['mem_utilization'] = "%.2f" % self.get_memory_utilization()
+        status['core_freq_ratio'] = int(100.0 * status['instant_core_freq'] / status['application_core_freq'])
+        return json.dumps(status) 
+        
 
 class GPUMonitor(object):
 

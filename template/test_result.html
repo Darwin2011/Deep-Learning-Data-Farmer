@@ -24,19 +24,51 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 
 var log_request = new XMLHttpRequest();
 var state_request = new XMLHttpRequest();
+var gpu_request = new XMLHttpRequest();
 var refresh = false;
 log_request.onreadystatechange = function() {
-    rawbuffer = document.getElementById('rawbuffer');
-    rawbuffer.value = log_request.responseText;
-    rawbuffer.scrollTop = rawbuffer.scrollHeight;
+    if (log_request.readyState == 4 && log_request.status == 200) {
+        rawbuffer = document.getElementById('rawbuffer');
+        rawbuffer.value = log_request.responseText;
+        rawbuffer.scrollTop = rawbuffer.scrollHeight;
+    }
+};
+
+gpu_request.onreadystatechange = function() {
+    if (gpu_request.readyState == 4 && gpu_request.status == 200) {
+        var status_array = JSON.parse(gpu_request.responseText);
+        var gpu_model = status_array["gpu_model"];
+        var instant_core_freq = status_array["instant_core_freq"];
+        var instant_mem_freq = status_array["instant_mem_freq"];
+        var application_core_freq = status_array["application_core_freq"];
+        var application_mem_freq = status_array["application_mem_freq"];
+        var autoboost = status_array["autoboost"];
+        var sm_utilization = status_array["sm_utilization"];
+        var mem_utilization = status_array["mem_utilization"];
+        var core_freq_ratio = status_array["core_freq_ratio"];        
+        document.getElementById("gpu_model").innerHTML = gpu_model;
+        document.getElementById("instant_core_freq").innerHTML = instant_core_freq;
+        document.getElementById("instant_mem_freq").innerHTML = instant_mem_freq;
+        document.getElementById("application_core_freq").innerHTML = application_core_freq;
+        document.getElementById("application_mem_freq").innerHTML = application_mem_freq;
+        document.getElementById("autoboost").innerHTML = autoboost;
+        document.getElementById("sm_utilization").innerHTML = sm_utilization;
+        document.getElementById("mem_utilization").innerHTML = mem_utilization;
+        document.getElementById("core_freq_ratio").value = core_freq_ratio;
+    }
+    
 };
 
 function timer() {
     setInterval(
         function(){
+            
             state_request.open('GET', "/requeststate?request={{ request }}", false)
             state_request.send();
             state = state_request.responseText;
+            
+            //gpu_request.open('GET', "/gpustate?request={{ request }}", true)
+            //gpu_request.send();
             
             if (state == "Running") {
                 log_request.open("GET", "/rawlogbuffer?request={{ request }}", true);
@@ -53,7 +85,13 @@ function timer() {
                 window.location.replace("/result?request={{ request }}");
             }
 
-        }, 1000);
+        }, 500);
+    setInterval(
+        function(){
+            gpu_request.open('GET', "/gpustate?request={{ request }}", true)
+            gpu_request.send();
+
+        }, 5000);
 };
 window.onload = timer;
 </script>
@@ -67,6 +105,7 @@ window.onload = timer;
 			<div class="main">
                 <div class="status-section">
                     {% if state == "Finish" %}
+                    <h4>Result Table Summary</h4>
                     <table>
                         <tr>
                             <!-- <td><h4>Request ID</h4></td> -->
@@ -100,9 +139,45 @@ window.onload = timer;
                     </table>
                     {% end %}
                     <div>
+                    <h4>Log Console</h4>
                     <textarea rows="20" cols="100" id="rawbuffer">
                     {{ buffer_log }}
                     </textarea>
+                    </div> 
+                    <div>
+                    <h4>GPU Status</h4>
+                        <table>
+                            <tr>
+                                <th><h4>GPU Lists</h4></th>
+                                <th><h4>Instant Core Freq</h4></th>
+                                <th><h4>Instant Mem Freq</h4></th>
+                                <th><h4>Application Core Freq</h4></th>
+                                <th><h4>Application Mem Freq</h4></th>
+                                <th><h4>Auto Boost</h4></th>
+                                <th><h4>SM Utilization</h4></th>
+                                <th><h4>Memory Utilization</h4></th>
+                                <th><h4>Core Frequency Ratio</h4></th>
+                            </tr>
+                            <tr>
+                                <td id="gpu_model">{{ gpu.gpu_model }}</td>
+                                <td id="instant_core_freq">{{ gpu.get_core_frequency(gpu.__class__.graphics_mode.INSTANT) }} </td>
+                                <td id="instant_mem_freq">{{ gpu.get_memory_frequency(gpu.__class__.graphics_mode.INSTANT) }} </td>
+                                <td id="application_core_freq">{{ gpu.get_core_frequency(gpu.__class__.graphics_mode.APPLICATION) }} </td>
+                                <td id="application_mem_freq">{{ gpu.get_memory_frequency(gpu.__class__.graphics_mode.APPLICATION) }} </td>
+                                <td id="autoboost">
+                                    {% if gpu.get_autoboost() == True %}
+                                    On
+                                    {% end%}
+                                    {% if gpu.get_autoboost() == False %}
+                                    Off
+                                    {% end%}
+                                </td>
+                                <td id="sm_utilization">{{ gpu.get_sm_utilization() }}</td>
+                                <td id="mem_utilization">{{ gpu.get_memory_utilization() }} </td>
+                                <td><progress id="core_freq_ratio" value="10" max="100"></progress></td>
+                            </tr>
+                            <tr>
+                        </table>
                     </div> 
                 </div>
 			</div>
