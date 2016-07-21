@@ -26,19 +26,19 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 		</div>
 		<!---header--->
 		<!---main--->
-			<div class="main">
-                <div class="status-section">
-                    <table>
-                        <tr>
-                            <th><h4>Request ID</h4></th>
-                            <th><h4>GPU Model</h4></th>
-                            <th><h4>Mail Address</h4></th>
-                            <th><h4>Framework</h4></th>
-                            <th><h4>Topology</h4></th>
-                            <th><h4>Batch size</h4></th>
-                            <th><h4>Iteration</h4></th>
-                            <th><h4>Date</h4></th>
-                        </tr>
+        <div class="main">
+            <div class="status-section">
+                <table>
+                    <tr>
+                            <td><h4>Request ID</h4></td>
+                            <td><h4>GPU Model</h4></td>
+                            <td><h4>Mail Address</h4></td>
+                            <td><h4>Framework</h4></td>
+                            <td><h4>Topology</h4></td>
+                            <td><h4>Batch size</h4></td>
+                            <td><h4>Iteration</h4></td>
+                            <td><h4>Date</h4></td>
+                    </tr>
                         {% for request_item in request_reports %}
                         <tr>
                             <td>
@@ -52,7 +52,7 @@ License URL: http://creativecommons.org/licenses/by/3.0/
                             <td>{{ request_item.iteration    }}</td>
                             <td>{{ request_item.request_time }}</td>
                         </tr>
-                        {% end%}
+                        {% end %}
                         <tr>
                     </table>     
                 </div>
