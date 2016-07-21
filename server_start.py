@@ -16,6 +16,12 @@ define('port', default=8000, help='run on the given port', type=int)
 
 scheduler = Task_Scheduler()
 
+class TestIndex(tornado.web.RequestHandler):
+    index_html = 'template/index.html'
+
+    def get(self):
+        self.render(self.__class__.index_html)
+
 class TestRequest(tornado.web.RequestHandler):
     test_request_html = 'template/test_request.html'
     request_id = 0
@@ -112,6 +118,7 @@ class GPUState(tornado.web.RequestHandler):
 if __name__ == '__main__':
     tornado.options.parse_command_line()
     app = tornado.web.Application(handlers = [
+        (r'/index',        TestIndex),            \
         (r'/request',      TestRequest),          \
         (r'/status',       TestStatus),           \
         (r"/result",       TestResult),           \
