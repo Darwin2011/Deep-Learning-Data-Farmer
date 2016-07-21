@@ -42,7 +42,7 @@ License URL: http://creativecommons.org/licenses/by/3.0/
                         {% for request_item in request_reports %}
                         <tr>
                             <td>
-                            <a href="/result?request_id={{ request_item.request_id }}"/>
+                            <a href="/result?request={{ request_item.request_id }}"/>
                                 {{ request_item.request_id   }}</a></td>
                             <td>{{ request_item.gpu_model    }}</td>
                             <td>{{ request_item.mail_addr    }}</td>
