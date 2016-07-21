@@ -226,17 +226,18 @@ class Mysql_wrapper():
             for i in range(rowcount):
                 output = cursor.fetchone()
                 farmer_log.info(output)
-                result.append(ResultObject(output[0], \
-                                           output[1], \
-                                           email,
-                                           output[2], \
-                                           output[3], \
-                                           output[4], \
-                                           output[5], \
-                                           output[6], \
-                                           output[7], \
-                                           "%.2f" % output[8], \
-                                           "%.2f" % output[9]))
+                resultObj = ResultObject(output[0], \
+                                         output[1], \
+                                         output[2], \
+                                         email,
+                                         output[3], \
+                                         output[4], \
+                                         output[5], \
+                                         output[6], \
+                                         output[7], \
+                                         "%.2f" % output[8], \
+                                         "%.2f" % output[9])
+                result.append(resultObj)
                 farmer_log.info(output)
         except Exception as e:
             farmer_log.error("get_result_by_request_id:" + e.message)
