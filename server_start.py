@@ -120,7 +120,7 @@ if __name__ == '__main__':
         (r"/requeststate", RequestState),         \
         (r"/gpustate",     GPUState),             \
         (r"/history",      TestHistory),          \
-        (r"detail",        TestDetail),           \
+        (r"/detail",        TestDetail),          \
         (r'/css/(.*)',     tornado.web.StaticFileHandler, {'path': 'template/css'}), \
         (r'/js/(.*)',      tornado.web.StaticFileHandler, {'path': 'template/js'})
     ])
