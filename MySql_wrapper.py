@@ -172,8 +172,7 @@ class Mysql_wrapper():
             farmer_log.debug("The result row count is %d" % rowcount)
             for i in range(rowcount):
                 output = cursor.fetchone()
-                farmer_log.info(output)
-                result.append(ResultObject(output[0], \
+                requestObj = RequestObject(output[0], \
                                            output[1], \
                                            output[2], \
                                            output[3], \
@@ -181,7 +180,8 @@ class Mysql_wrapper():
                                            output[5], \
                                            output[6], \
                                            output[7], \
-                                           output[8]))
+                                           output[8])
+                result.append(requestObj)
                 farmer_log.info(output)
         except Exception as e:
             farmer_log.error("get_request_reports:" + e.message)
