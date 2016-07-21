@@ -1,5 +1,6 @@
 #!usr/bin/env python
 
+
 class requests(object):
 
     def __init__(self, gpuid, topologies, iterations, batch_size):
@@ -27,6 +28,7 @@ class ResultObject(object):
         self.iteration      = iteration
         self.score          = score
         self.images_pre_sec = images_pre_sec
+
 
 class RequestObject(object):
 

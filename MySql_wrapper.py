@@ -163,7 +163,7 @@ class Mysql_wrapper():
         cursor = self.connection.cursor()
         try:
             seach_image = "SELECT REQUEST_ID, DOCKER_ID, GPU_MODEL, MAIL_ADDRESS, FRAMEWORK, " \
-                          "TOPOLOGY, BATCH_SIZE, ITERATION REQUEST_TIME " \
+                          "TOPOLOGY, BATCH_SIZE, ITERATION, REQUEST_TIME " \
                           "FROM request_reports;"
             farmer_log.debug(seach_image)
             cursor.execute(seach_image)
