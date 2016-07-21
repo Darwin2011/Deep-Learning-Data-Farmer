@@ -28,7 +28,8 @@ class Docker_Image(object):
         self.cudnn_strings_version = cudnn_strings_version
         self.tensorflow_installed = tensorflow_installed
         self.caffe_installed = caffe_installed
-        
+
+
 class Docker_Monitor(object):
     """
         
