@@ -39,6 +39,7 @@ class Mysql_wrapper():
         create_request_reports_table_cmd = """CREATE TABLE IF NOT EXISTS request_reports
         (id              INT          NOT NULL AUTO_INCREMENT,
          REQUEST_ID      VARCHAR(500) NOT NULL,
+         DOCKER_ID       VARCHAR(500) NOT NULL,
          GPU_MODEL       VARCHAR(500) NOT NULL,
          MAIL_ADDRESS    VARCHAR(500) NOT NULL,
          FRAMEWORK       VARCHAR(500) NOT NULL,
@@ -127,6 +128,7 @@ class Mysql_wrapper():
             (REQUEST_ID,   DOCKER_ID,  GPU_MODEL,  MAIL_ADDRESS,  FRAMEWORK,  TOPOLOGY,  BATCH_SIZE,   ITERATION) \
       VALUES("%s",         "%s",       "%s",       "%s",          "%s",       "%s",      "%s",         "%s");' % \
             (resquest_id,  docker_id,  gpu_model,  mail_addr,     framework,  topology,  batch_size,   iteration)
+            farmer_log.debug(inserted_sql)
             cursor.execute(inserted_sql)
             self.connection.commit()
             output = cursor.fetchall()
