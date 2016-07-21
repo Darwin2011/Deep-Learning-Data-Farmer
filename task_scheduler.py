@@ -101,7 +101,7 @@ class Task_Scheduler(object):
             self.sql_wrapper.inert_item_in_result_reports(\
                 request_id, \
                 container, \
-                gpuid, \
+                config["gpu_model"], \
                 result['framework'], \
                 result['topology'],\
                 result['batch_size'],\
