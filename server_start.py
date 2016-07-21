@@ -78,7 +78,6 @@ class TestResult(tornado.web.RequestHandler):
     test_result_html = 'template/test_result.html'
 
     def get(self):
-        # fake to get the request id
         request_id = self.get_argument("request")
         self.render(self.__class__.test_result_html, results = scheduler.sql_wrapper.get_result_by_request_id(request_id), buffer_log = scheduler.requests[request_id]['raw_buffer'], request = request_id, state = str(scheduler.requests[request_id]['state']), gpu = scheduler.requests[request_id]['gpu_device'])
 
@@ -127,7 +126,7 @@ if __name__ == '__main__':
         (r"/requeststate", RequestState),         \
         (r"/gpustate",     GPUState),             \
         (r"/history",      TestHistory),          \
-        (r"/detail",        TestDetail),          \
+        (r"/detail",       TestDetail),           \
         (r'/css/(.*)',     tornado.web.StaticFileHandler, {'path': 'template/css'}), \
         (r'/js/(.*)',      tornado.web.StaticFileHandler, {'path': 'template/js'})
     ])
