@@ -218,7 +218,7 @@ class Mysql_wrapper():
             ITERATION, \
             SCORE,\
             IMAGES_PRE_SEC \
-            FROM result_reports WHERE REQUEST_ID = '%s' limit %d %d;" % (request_id, start_index, self.__class__.MAX_ITEMS_PRE_PAGE)
+            FROM result_reports WHERE REQUEST_ID = '%s' limit %d, %d;" % (request_id, start_index, self.__class__.MAX_ITEMS_PRE_PAGE)
             farmer_log.debug(search_image)
             cursor.execute(search_image)
             self.connection.commit()

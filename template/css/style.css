@@ -93,7 +93,8 @@ a{text-decoration:none;}
     width = 70%; 
 }
 nav.vertical ul li{	display:block;}/* vertical menu */
-nav.horizontal ul li{	display: inline-block;}/* horizontal menu */
+nav.horizontal ul li{ display:inline-block;}/* horizontal menu */
+
 img{max-width:100%;}
 /*end reset*/
 body{
