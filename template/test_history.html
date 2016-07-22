@@ -65,21 +65,17 @@ License URL: http://creativecommons.org/licenses/by/3.0/
             <nav class="horizontal"> 
             <!-- <ul class="pagination pagination-lg">-->
                 <ul class="dropdown-menu6">
-                    <li class="disabled">
-                        <a href="#">
-                        <i class="fa fa-angle-left">&laquo;</i>
-                    </a>
-                <li class="active">
-                    <a href="#">1</a>
-                </li>
-                <li><a href="#">2</a></li>  
-                <li><a href="#">3</a></li>
-                <li><a href="#">4</a></li>  
-                <li><a href="#">5</a></li>  
-                <li><a href="#">
-                    <i class="fa fa-angle-right">&raquo;</i>
-                    </a>
-                </li>
+                    {% if page == 1 %}
+                    <li><a class="not-active" href="/history?page=1">Newer</a></li>
+                    {% else %}
+                    <li><a class="active" href="/history?page={{ page - 1 }}">Newer</a></li>
+                    {% end %}
+                    {% if is_last_page %}
+                    <li><a class="not-active" href="/history?page={{ page }}">Older</a></li>
+                    {% else %}
+                    <li><a class="active" href="/history?page={{ page + 1 }}">Older</a></li>  
+                    {% end %}
+                </ul>
             </nav>
 			<p>Copyright 2016 Intel PCS. All rights reserved</p>
 		</div>

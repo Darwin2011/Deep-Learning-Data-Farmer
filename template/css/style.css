@@ -93,7 +93,20 @@ a{text-decoration:none;}
     width = 70%; 
 }
 nav.vertical ul li{	display:block;}/* vertical menu */
-nav.horizontal ul li{ display:inline-block;}/* horizontal menu */
+nav.horizontal ul li{ 
+    font-size: 1em;
+    display:inline-block;
+    }/* horizontal menu */
+
+nav.horizontal ul li a.active{
+    color: #ffffff;
+    }
+
+nav.horizontal ul li a.not-active{
+   color: #8f8f8f;
+   pointer-events: none;
+   cursor: default;
+}
 
 img{max-width:100%;}
 /*end reset*/

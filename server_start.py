@@ -10,6 +10,7 @@ import os
 from xml.dom.minidom import parseString
 from gpu_control import *
 from task_scheduler import *
+import farmer_log
 
 from tornado.options import define, options
 define('port', default=8000, help='run on the given port', type=int)
@@ -69,10 +70,23 @@ class TestStatus(tornado.web.RequestHandler):
         self.render(self.__class__.test_status_html, gpus = scheduler.gpu_monitor.gpulists)
 
 class TestHistory(tornado.web.RequestHandler):
+    PAGE_SIZE = 20 
     test_history_html = 'template/test_history.html'
 
     def get(self):
-        self.render(self.__class__.test_history_html, request_reports = scheduler.sql_wrapper.get_request_reports())
+        page_num = int(self.get_argument("page"))
+        start_index = self.__class__.PAGE_SIZE * (page_num - 1)
+        count = self.__class__.PAGE_SIZE + 1
+        request_reports = scheduler.sql_wrapper.get_request_reports(start_index, count)
+        is_last_page = False
+        if len(request_reports) < count:
+            is_last_page = True
+        else:
+            is_last_page = False
+            request_reports.pop()
+        self.render(self.__class__.test_history_html,\
+                     request_reports = request_reports, page = page_num,\
+                     is_last_page = is_last_page)
 
 class TestResult(tornado.web.RequestHandler):
     test_result_html = 'template/test_result.html'

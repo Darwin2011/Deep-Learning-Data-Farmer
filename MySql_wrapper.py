@@ -7,7 +7,7 @@ from common import *
 filterwarnings("ignore", category = MySQLdb.Warning)
 
 class Mysql_wrapper():
-    MAX_ITEMS_PRE_PAGE = 20
+    MAX_ITEMS_PRE_PAGE = 4 
 
     def __init__(self, host, user, passwd, dataset):
         self.connection = \
@@ -159,13 +159,13 @@ class Mysql_wrapper():
         finally:
             cursor.close()
 
-    def get_request_reports(self):
+    def get_request_reports(self, start_index, count):
         result = []
         cursor = self.connection.cursor()
         try:
             seach_image = "SELECT REQUEST_ID, DOCKER_ID, GPU_MODEL, MAIL_ADDRESS, FRAMEWORK, " \
                           "TOPOLOGY, BATCH_SIZE, ITERATION, REQUEST_TIME " \
-                          "FROM request_reports order by REQUEST_TIME desc;"
+                          "FROM request_reports order by REQUEST_TIME desc limit %d, %d;" % (start_index, count)
             farmer_log.debug(seach_image)
             cursor.execute(seach_image)
             self.connection.commit()
@@ -191,7 +191,7 @@ class Mysql_wrapper():
             cursor.close()
         return result
 
-    def get_result_by_request_id(self, request_id, page = 0):
+    def get_result_by_request_id(self, request_id):
         result = []
         cursor = self.connection.cursor()
         email = ""
@@ -206,7 +206,6 @@ class Mysql_wrapper():
                 farmer_log.error("The request email have wrong number. The rowcount[%d]" % cursor.rowcount)
                 farmer_log.error(cursor.fetchall())
 
-            start_index = page * self.__class__.MAX_ITEMS_PRE_PAGE
             search_image = "SELECT \
             REQUEST_ID, \
             DOCKER_ID, \
@@ -218,7 +217,7 @@ class Mysql_wrapper():
             ITERATION, \
             SCORE,\
             IMAGES_PRE_SEC \
-            FROM result_reports WHERE REQUEST_ID = '%s' limit %d, %d;" % (request_id, start_index, self.__class__.MAX_ITEMS_PRE_PAGE)
+            FROM result_reports WHERE REQUEST_ID = '%s';" % request_id
             farmer_log.debug(search_image)
             cursor.execute(search_image)
             self.connection.commit()
