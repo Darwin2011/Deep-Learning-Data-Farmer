@@ -50,7 +50,6 @@ class GPUDevice(object):
         self.task_queues = []
         self.email = 'nobody'
 
-
     def sudo_wrapper(self, command):
         """
             Returns:
@@ -232,7 +231,13 @@ class GPUDevice(object):
             self.processes.append(gp)
         return self.processes 
   
-    def get_status_as_json(self):
+    def get_gpu_temperature(self):
+        command = "nvidia-smi -i %d -q -d TEMPERATURE | grep 'Current Temp' | awk '{print $(NF-1)}'" % (self.gpuid, )
+        fp = os.popen(self.sudo_wrapper(command))
+        temperature = int(fp.read().strip())
+        return temperature
+
+    def response_status_as_json(self, request):
         status = {}
         status['gpu_model'] = self.gpu_model
         status['instant_core_freq'] = self.get_core_frequency(self.__class__.graphics_mode.INSTANT)
@@ -243,8 +248,13 @@ class GPUDevice(object):
         status['sm_utilization'] = "%.2f" % self.get_sm_utilization()
         status['mem_utilization'] = "%.2f" % self.get_memory_utilization()
         status['core_freq_ratio'] = int(100.0 * status['instant_core_freq'] / status['application_core_freq'])
+        status['temperature'] = self.get_gpu_temperature()
+        if request is not None:
+            request['history_freq'].append(status['instant_core_freq'])
+            request['history_temperature'].append(status['temperature'])
         return json.dumps(status) 
         
+    
 
 class GPUMonitor(object):
 

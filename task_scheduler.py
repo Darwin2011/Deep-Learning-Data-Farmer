@@ -15,17 +15,19 @@ from threading import Thread
 from gpu_control import *
 from enum import Enum
 
-TASK_STATE = Enum("Pendding", "Running", "Finish")
 
 class Task_Scheduler(object):
 
+    TASK_STATE = Enum("Pendding", "Running", "Finish")
+    
     def __init__(self):
-        self.sql_wrapper    = Mysql_wrapper('localhost', 'root', 'tracing', 'animations')
+        self.sql_wrapper    = Mysql_wrapper('localhost', 'root', 'tracing', 'automations')
         self.docker_control = Docker_Monitor()
         self.gpu_monitor    = GPUMonitor()
         self.gpu_monitor.init_local_gpu_lists()
         self.gpu_monitor.register_listener(self)
         self.requests = {}
+        self.pending_requests = []
         self.prepare_env()
         self.lock = threading.Lock()
 
@@ -38,41 +40,51 @@ class Task_Scheduler(object):
 
     def parse_new_request_from_xml(self, filepath):
         xml_parser = XMLParser(filepath)
-        config = xml_parser.parse_xml()
-        gpu_device = self.gpu_monitor.get_gpu_from_model(config['gpu_model'])
+        request = xml_parser.parse_xml()
+        gpu_device = self.gpu_monitor.get_gpu_from_model(request['gpu_model'])
         if gpu_device is None:
             farmer_log.error('Internal Fatal Error, Wrong GPU Model Name')
             raise Exception('Internal Fatal Error')
-        config['gpu_id'] = gpu_device.gpuid
-        config['gpu_device'] = gpu_device
-        return config
+        # Add some keys request dicts
+        request['gpu_id'] = gpu_device.gpuid
+        request['gpu_device'] = gpu_device
+        request['history_temperature'] = []
+        request['history_freq'] = []
+        request['raw_buffer'] = bytearray()
+        return request 
 
     def assign_request(self, filepath):
         """
             scheduler tries to assign one request to one specified GPU
         """
+        # This lock is to protect assign_request. There're multiple process/threads may execute assign requests.
+        # So I use one lock here for safety.
         self.lock.acquire()
-        config = self.parse_new_request_from_xml(filepath)
-        config["state"] = TASK_STATE.Pendding
-        config['raw_buffer'] = bytearray()
-        self.requests[config['request_id']] = config
+        request = self.parse_new_request_from_xml(filepath)
+        request["state"] = self.__class__.TASK_STATE.Pendding
+        self.requests[request['request_id']] = request
+        self.pending_requests.append(request)
         self.lock.release()
-        thread = Thread(target = self.run) 
-        thread.start()
- 
-    def run(self):
-        for key in self.requests.keys():
-            request = self.requests[key]
+        t = threading.Thread(target=self.schedule)
+        t.start()
+
+    def schedule(self):
+        """
+            Only one thread can be run here
+        """
+        self.lock.acquire()
+        for request in self.pending_requests:
             if self.request_runnable(request):
-                status = self.test_start(request)
-                if status:
-                    request['gpu_device'].blocked = False
-                #can be poped after inserting into database
-                #self.requests.pop(request['request_id'], None)
+                request['gpu_device'].blocked = True 
+                request["state"] = self.__class__.TASK_STATE.Running
+                self.test_start(request)
+                request['gpu_device'].blocked = False
+                self.pending_requests.remove(request)
+        self.lock.release()
                 
     
-    def request_runnable(self, config):
-        return False if config['gpu_device'].blocked else True
+    def request_runnable(self, request):
+        return False if request['gpu_device'].blocked else True
        
  
     def test_start(self, config):
@@ -86,7 +98,6 @@ class Task_Scheduler(object):
         gpuid = config['gpu_id'] 
         image = self.docker_control.get_image(index)
         container = get_random_container()
-        config["state"] = TASK_STATE.Running
         execute(run_docker(container, image.repository, image.tag))
         test_workload = Caffe_Workload(container)
         test_workload.copy()
@@ -109,8 +120,13 @@ class Task_Scheduler(object):
                 result['training images per second']
             )
         execute(stop_docker(container))
-        config["state"] = TASK_STATE.Finish
+        config["state"] = self.__class__.TASK_STATE.Finish
         return True
+
+    def response_gpu_state_request(self, request_id):
+        request = self.requests[request_id]
+        gpu_device = request['gpu_device']
+        return gpu_device.response_status_as_json(request)    
 
 if __name__ == "__main__":
     scheduler = Task_Scheduler()

@@ -66,7 +66,7 @@ class TestResult(tornado.web.RequestHandler):
     def get(self):
         # fake to get the request id
         request_id = self.get_argument("request")
-        self.render(self.__class__.test_result_html, results = scheduler.sql_wrapper.get_result_by_request_id(request_id), buffer_log = scheduler.requests[request_id]['raw_buffer'], request = request_id, state = str(scheduler.requests[request_id]['state']), gpu = scheduler.requests[request_id]['gpu_device'])
+        self.render(self.__class__.test_result_html, results = scheduler.sql_wrapper.get_result_by_request_id(request_id), buffer_log = scheduler.requests[request_id]['raw_buffer'], request_id = request_id, state = str(scheduler.requests[request_id]['state']), gpu = scheduler.requests[request_id]['gpu_device'], request = scheduler.requests[request_id])
 
 
 class TestRawLogResponse(tornado.web.RequestHandler):
@@ -88,8 +88,7 @@ class GPUState(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     def get(self):
         request_id = self.get_argument("request")
-        print(str(scheduler.requests[request_id]["gpu_device"].get_status_as_json()))
-        self.write(str(scheduler.requests[request_id]["gpu_device"].get_status_as_json()))
+        self.write(str(scheduler.response_gpu_state_request(request_id)))
         self.finish()
 
 if __name__ == '__main__':

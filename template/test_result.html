@@ -20,12 +20,20 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 <link href='//fonts.googleapis.com/css?family=Josefin+Sans:400,100,100italic,300,300italic,400italic,600,600italic,700,700italic' rel='stylesheet' type='text/css'>
 <!-- js -->
 <script type="text/javascript" src="js/jquery-2.1.4.min.js"></script>
+<script type="text/javascript" src="js/canvasjs.min.js"></script> 
 <script type="text/javascript">
 
 var log_request = new XMLHttpRequest();
 var state_request = new XMLHttpRequest();
+var state;
+var state_handler;
 var gpu_request = new XMLHttpRequest();
+var gpu_timer_handler;
 var refresh = false;
+
+var chart_temperature; 
+var chart_frequency; 
+
 log_request.onreadystatechange = function() {
     if (log_request.readyState == 4 && log_request.status == 200) {
         rawbuffer = document.getElementById('rawbuffer');
@@ -46,6 +54,7 @@ gpu_request.onreadystatechange = function() {
         var sm_utilization = status_array["sm_utilization"];
         var mem_utilization = status_array["mem_utilization"];
         var core_freq_ratio = status_array["core_freq_ratio"];        
+        var temperature = status_array["temperature"];        
         document.getElementById("gpu_model").innerHTML = gpu_model;
         document.getElementById("instant_core_freq").innerHTML = instant_core_freq;
         document.getElementById("instant_mem_freq").innerHTML = instant_mem_freq;
@@ -55,45 +64,82 @@ gpu_request.onreadystatechange = function() {
         document.getElementById("sm_utilization").innerHTML = sm_utilization;
         document.getElementById("mem_utilization").innerHTML = mem_utilization;
         document.getElementById("core_freq_ratio").value = core_freq_ratio;
+        if (state != "Finish") {
+            chart_frequency.options.data[0].dataPoints.push({ y: Number(instant_core_freq)});
+            chart_frequency.render();
+            chart_temperature.options.data[0].dataPoints.push({ y: Number(temperature)});
+            chart_temperature.render();
+        }
     }
-    
 };
 
 function timer() {
-    setInterval(
+    state_handler = setInterval(
         function(){
             
-            state_request.open('GET', "/requeststate?request={{ request }}", false)
+            state_request.open('GET', "/requeststate?request={{ request_id }}", false)
             state_request.send();
             state = state_request.responseText;
             
-            //gpu_request.open('GET', "/gpustate?request={{ request }}", true)
+            //gpu_request.open('GET', "/gpustate?request={{ request_id }}", true)
             //gpu_request.send();
             
             if (state == "Running") {
-                log_request.open("GET", "/rawlogbuffer?request={{ request }}", true);
+                log_request.open("GET", "/rawlogbuffer?request={{ request_id }}", true);
                 log_request.send();
                 refresh = true;            
             }
 
-            if (state == "Finish" && refresh) {
+            if (state == "Finish") {
+                clearInterval(state_handler);
+                clearInterval(gpu_timer_handler);
                 if (refresh) {
-                    log_request.open("GET", "/rawlogbuffer?request={{ request }}", true);
+                    log_request.open("GET", "/rawlogbuffer?request={{ request_id }}", true);
                     log_request.send();
+                    window.location.replace("/result?request={{ request_id }}");
                 } 
                 refresh = false;
-                window.location.replace("/result?request={{ request }}");
             }
 
         }, 500);
-    setInterval(
-        function(){
-            gpu_request.open('GET', "/gpustate?request={{ request }}", true)
-            gpu_request.send();
 
-        }, 5000);
+    gpu_timer_handler = setInterval(
+        function(){
+                gpu_request.open('GET', "/gpustate?request={{ request_id }}", true)
+                gpu_request.send();
+        }, 3000);
 };
-window.onload = timer;
+
+window.onload = function() {
+    timer();
+    chart_temperature = new CanvasJS.Chart("gpu_temperature_chart", { 
+        data: [
+            {
+                type: "spline",
+                dataPoints: [
+                    {% for temperature in request['history_temperature'] %}
+                    {{ '{ y: ' + str(temperature) + '},' }}
+                    {% end %}
+                ]
+            }
+        ]
+    });
+    chart_temperature.render();
+
+    chart_frequency = new CanvasJS.Chart("gpu_frequency_chart", { 
+        data: [
+            {
+                type: "spline",
+                dataPoints: [
+                    {% for freq in request['history_freq'] %}
+                    {{ '{ y: ' + str(freq) + '},' }}
+                    {% end %}
+                ]
+            }
+        ]
+    });
+    chart_frequency.render();
+};
 </script>
 <body>
 		<!---header--->
@@ -157,6 +203,7 @@ window.onload = timer;
                                 <th><h4>SM Utilization</h4></th>
                                 <th><h4>Memory Utilization</h4></th>
                                 <th><h4>Core Frequency Ratio</h4></th>
+                                <th><h4>Temperature</h4></th>
                             </tr>
                             <tr>
                                 <td id="gpu_model">{{ gpu.gpu_model }}</td>
@@ -174,10 +221,15 @@ window.onload = timer;
                                 </td>
                                 <td id="sm_utilization">{{ gpu.get_sm_utilization() }}</td>
                                 <td id="mem_utilization">{{ gpu.get_memory_utilization() }} </td>
-                                <td><progress id="core_freq_ratio" value="10" max="100"></progress></td>
+                                <td><progress id="core_freq_ratio" value="1" max="100"></progress></td>
+                                <td>{{ gpu.get_gpu_temperature() }}</progress></td>
                             </tr>
                             <tr>
                         </table>
+                        <h4 style="margin:1em;">GPU Temperature</h4>
+                        <div id="gpu_temperature_chart" style="width:100%; height:280px;"></div> 
+                        <h4 style="margin:1em;">GPU Frequency</h4>
+                        <div id="gpu_frequency_chart" style="width:100%; height:280px;"></div> 
                     </div> 
                 </div>
 			</div>
