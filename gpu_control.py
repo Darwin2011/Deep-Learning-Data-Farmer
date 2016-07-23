@@ -4,6 +4,7 @@ import os
 import json
 from enum import Enum
 
+
 class GPUProcess(object):
     """
         Process Runing on  GPU

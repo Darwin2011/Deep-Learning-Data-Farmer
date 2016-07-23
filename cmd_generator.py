@@ -2,7 +2,6 @@
 """
     This file defines how to generate the docker command.
 """
-# TODO: ADD DOCKER helper documents
 import os
 import farmer_log
 import datetime

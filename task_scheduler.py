@@ -104,13 +104,15 @@ class Task_Scheduler(object):
         results = test_workload.run_batch(config['topology'], config['iterations'], config['batch_size'], gpuid, config['raw_buffer'])
         farmer_log.info(results)
         farmer_log.info(config) 
-        request_id = config['request_id'] 
+        request_id = config['request_id']
+        self.sql_wrapper.inert_item_in_request_reports(request_id, container,
+           config["gpu_model"], config["email"], config["framework"],
+           config["topology"], config["batch_size"], config["iterations"])
         for result in results:
             self.sql_wrapper.inert_item_in_result_reports(\
                 request_id, \
                 container, \
-                gpuid, \
-                config['email'], \
+                config["gpu_model"], \
                 result['framework'], \
                 result['topology'],\
                 result['batch_size'],\

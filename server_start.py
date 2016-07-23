@@ -10,11 +10,18 @@ import os
 from xml.dom.minidom import parseString
 from gpu_control import *
 from task_scheduler import *
+import farmer_log
 
 from tornado.options import define, options
 define('port', default=8000, help='run on the given port', type=int)
 
 scheduler = Task_Scheduler()
+
+class TestIndex(tornado.web.RequestHandler):
+    index_html = 'template/index.html'
+
+    def get(self):
+        self.render(self.__class__.index_html)
 
 class TestRequest(tornado.web.RequestHandler):
     test_request_html = 'template/test_request.html'
@@ -46,6 +53,8 @@ class TestRequest(tornado.web.RequestHandler):
         options['request_id'] = request_string 
         dom = parseString(dicttoxml.dicttoxml(options, attr_type=False))
 
+        if not os.path.exists("./xml"):
+            os.mkdir("./xml")
         xml_string = dom.toprettyxml()
         filename = "%s_%d.xml" % (timestamp, self.__class__.request_id)
         filepath = os.path.join('xml', filename)
@@ -60,13 +69,40 @@ class TestStatus(tornado.web.RequestHandler):
     def get(self):
         self.render(self.__class__.test_status_html, gpus = scheduler.gpu_monitor.gpulists)
 
+class TestHistory(tornado.web.RequestHandler):
+    PAGE_SIZE = 20 
+    test_history_html = 'template/test_history.html'
+
+    def get(self):
+        page_num = int(self.get_argument("page"))
+        start_index = self.__class__.PAGE_SIZE * (page_num - 1)
+        count = self.__class__.PAGE_SIZE + 1
+        request_reports = scheduler.sql_wrapper.get_request_reports(start_index, count)
+        is_last_page = False
+        if len(request_reports) < count:
+            is_last_page = True
+        else:
+            is_last_page = False
+            request_reports.pop()
+        self.render(self.__class__.test_history_html,\
+                     request_reports = request_reports, page = page_num,\
+                     is_last_page = is_last_page)
+
 class TestResult(tornado.web.RequestHandler):
     test_result_html = 'template/test_result.html'
 
     def get(self):
-        # fake to get the request id
         request_id = self.get_argument("request")
         self.render(self.__class__.test_result_html, results = scheduler.sql_wrapper.get_result_by_request_id(request_id), buffer_log = scheduler.requests[request_id]['raw_buffer'], request_id = request_id, state = str(scheduler.requests[request_id]['state']), gpu = scheduler.requests[request_id]['gpu_device'], request = scheduler.requests[request_id])
+
+
+class TestDetail(tornado.web.RequestHandler):
+    test_detail_html = 'template/test_detail.html'
+
+    def get(self):
+        # fake to get the request id
+        request_id = self.get_argument("request")
+        self.render(self.__class__.test_detail_html, results = scheduler.sql_wrapper.get_result_by_request_id(request_id))
 
 
 class TestRawLogResponse(tornado.web.RequestHandler):
@@ -94,15 +130,18 @@ class GPUState(tornado.web.RequestHandler):
 if __name__ == '__main__':
     tornado.options.parse_command_line()
     app = tornado.web.Application(handlers = [
-        (r'/request', TestRequest), \
-        (r'/status', TestStatus),   \
-        (r"/result", TestResult),   \
-        (r"/rawlog", TestRawLogResponse),   \
+        (r'/index',        TestIndex),            \
+        (r'/request',      TestRequest),          \
+        (r'/status',       TestStatus),           \
+        (r"/result",       TestResult),           \
+        (r"/rawlog",       TestRawLogResponse),   \
         (r"/rawlogbuffer", TestRawLogResponse),   \
-        (r"/requeststate", RequestState),   \
-        (r"/gpustate", GPUState),   \
-        (r'/css/(.*)', tornado.web.StaticFileHandler, {'path': 'template/css'}), \
-        (r'/js/(.*)', tornado.web.StaticFileHandler, {'path': 'template/js'})
+        (r"/requeststate", RequestState),         \
+        (r"/gpustate",     GPUState),             \
+        (r"/history",      TestHistory),          \
+        (r"/detail",       TestDetail),           \
+        (r'/css/(.*)',     tornado.web.StaticFileHandler, {'path': 'template/css'}), \
+        (r'/js/(.*)',      tornado.web.StaticFileHandler, {'path': 'template/js'})
     ])
     http_server = tornado.httpserver.HTTPServer(app)
     http_server.listen(options.port)

@@ -1,0 +1,85 @@
+<!--Author: W3layouts
+Author URL: http://w3layouts.com
+License: Creative Commons Attribution 3.0 Unported
+License URL: http://creativecommons.org/licenses/by/3.0/
+-->
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>GPU Test Farmer - history</title>
+<link href="css/style.css" rel="stylesheet" type="text/css" media="all"/>
+<!-- <link rel="stylesheet" type="text/css" href="css/jquery-ui.css"> -->
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+<meta name="keywords" content="Property Search Widget Form  Responsive, Login form web template, Sign up Web Templates, Flat Web Templates, Login signup Responsive web template, Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, SonyEricsson, Motorola web design" />
+<!--web-fonts-->
+
+<!-- <link href="http://libs.baidu.com/bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet" type='text/css'> -->
+<link href='//fonts.googleapis.com/css?family=Open+Sans:400,300,300italic,400italic,600,600italic,700,700italic,800,800italic' rel='stylesheet' type='text/css'>
+<link href='//fonts.googleapis.com/css?family=Josefin+Sans:400,100,100italic,300,300italic,400italic,600,600italic,700,700italic' rel='stylesheet' type='text/css'>
+<!-- js -->
+<script type="text/javascript" src="js/jquery-2.1.4.min.js"></script>
+<script src="http://libs.baidu.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+<!-- //js -->
+</head>
+<body>
+		<!---header--->
+		<div class="header">
+			<h1>Request History Panel</h1>
+		</div>
+		<!---header--->
+		<!---main--->
+        <div class="main">
+            <div class="status-section">
+                <table>
+                    <tr>
+                            <td><h4>Request ID</h4></td>
+                            <td><h4>GPU Model</h4></td>
+                            <td><h4>Mail Address</h4></td>
+                            <td><h4>Framework</h4></td>
+                            <td><h4>Topology</h4></td>
+                            <td><h4>Batch size</h4></td>
+                            <td><h4>Iteration</h4></td>
+                            <td><h4>Date</h4></td>
+                    </tr>
+                        {% for request_item in request_reports %}
+                    <tr>
+                        <td>
+                            <a href="/detail?request={{ request_item.request_id }}"/>
+                                {{ request_item.request_id   }}</a></td>
+                        <td>{{ request_item.gpu_model    }}</td>
+                        <td>{{ request_item.mail_addr    }}</td>
+                        <td>{{ request_item.framework    }}</td>
+                        <td>{{ request_item.topology     }}</td>
+                        <td>{{ request_item.batch_size   }}</td>
+                        <td>{{ request_item.iteration    }}</td>
+                        <td>{{ request_item.request_time }}</td>
+                    </tr>
+                        {% end %}
+                </table>
+			</div>
+        </div>
+        <div class="footer">
+            
+            <nav class="horizontal"> 
+            <!-- <ul class="pagination pagination-lg">-->
+                <ul class="dropdown-menu6">
+                    {% if page == 1 %}
+                    <li><a class="not-active" href="/history?page=1">Newer</a></li>
+                    {% else %}
+                    <li><a class="active" href="/history?page={{ page - 1 }}">Newer</a></li>
+                    {% end %}
+                    {% if is_last_page %}
+                    <li><a class="not-active" href="/history?page={{ page }}">Older</a></li>
+                    {% else %}
+                    <li><a class="active" href="/history?page={{ page + 1 }}">Older</a></li>  
+                    {% end %}
+                </ul>
+            </nav>
+			<p>Copyright 2016 Intel PCS. All rights reserved</p>
+		</div>
+
+		<!---main--->
+</body>
+</html>
