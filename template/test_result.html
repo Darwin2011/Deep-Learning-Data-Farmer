@@ -184,6 +184,12 @@ window.onload = function() {
                         <tr>
                     </table>
                     {% end %}
+                    {% if request['profiling'] == True %}
+                        {% if state == "Finish" %}
+                        <h4>Profiling Result</h4>
+                        <a href="log/{{ request_id }}.tar.gz"><h4>Download the profiling result</h4></a> 
+                        {% end %}
+                    {% end %}
                     <div>
                     <h4>Log Console</h4>
                     <textarea rows="20" cols="100" id="rawbuffer">

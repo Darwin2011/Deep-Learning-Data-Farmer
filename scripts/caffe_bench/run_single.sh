@@ -8,10 +8,9 @@ batch_size=$2
 iterations=$3
 gpuid=$4
 template_filename=`echo $template_name | awk -F/ '{print $NF}'`
-
-
-
+template_filename_without_ext=`echo $template_filename | awk -F'.' '{print $1}'`
 Caffe_Source=$5
+nvprof=$6
 Caffe_BIN=""
 log_dir=""
 if [ "$Caffe_Source" = "upstream" ]; then 
@@ -24,10 +23,19 @@ else
     log_dir="nvidia_caffe_log"
 fi;
 
-
 mkdir -p ${log_dir}
 sed -e "s/BATCH_SIZE/${batch_size}/g" ${template_name} > deploy.prototxt
-$Caffe_BIN time --model=deploy.prototxt --iterations=${iterations} --gpu ${gpuid} #> ./${log_dir}/${template_filename}_${batch_size}".log" 2>&1
+
+
+logfile=${template_filename_without_ext}_${batch_size}_${Caffe_Source}".log" 
+if [ "$nvprof" = "0" ]; then
+    $Caffe_BIN time --model=deploy.prototxt --iterations=${iterations} --gpu ${gpuid} #> ./${log_dir}/${template_filename}_${batch_size}".log" 2>&1
+else
+    mkdir -p /tmp/log
+    nvprof --csv --log-file "/tmp/log/"${logfile} $Caffe_BIN time --model=deploy.prototxt --iterations=${iterations} --gpu ${gpuid}
+fi;
+
+
 #mv deploy.prototxt ./${log_dir}/${template_filename}_${batch_size}_deploy.prototxt
 
 #average_forward=`cat ./${log_dir}/${template_filename}_${batch_size}".log" | grep "Average Forward pass" | awk '{print $(NF-1)}'`

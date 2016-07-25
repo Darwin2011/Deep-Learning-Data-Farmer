@@ -5,14 +5,20 @@ import sys
 import pandas
 from cmd_generator import *
 from subprocess import Popen, PIPE, STDOUT
-
+from abc import ABCMeta, abstractmethod
 
 class Workload(object):
+    __metaclass__ = ABCMeta
    
-    def __init__(self, container):
+    def __init__(self, container, request_id, nvprof):
         self.container = container
+        self.request_id = request_id
+        self.nvprof = nvprof
 
 
+    def sudo_docker_wrapper(self, command):
+        return 'sudo docker exec %s %s' % (self.container, command)
+    
 
 class Caffe_Workload(Workload):
 
@@ -21,7 +27,6 @@ class Caffe_Workload(Workload):
     docker_caffe_bench = '/home/caffe/caffe_bench'
     docker_run_script = '/home/caffe/caffe_bench/run_single.sh'
     
-
     batch_size = { \
         'alexnet_group1' : (256, 1), \
         'alexnet_group2' : (256, 1), \
@@ -41,11 +46,9 @@ class Caffe_Workload(Workload):
 
     middle_dir = 'template'
 
-    def __init__(self, container):
-        super(Caffe_Workload, self).__init__(container)
+    def __init__(self, container, request_id, nvprof):
+        super(Caffe_Workload, self).__init__(container, request_id, nvprof)
 
-    def sudo_docker_wrapper(self, command):
-        return 'sudo docker exec %s %s' % (self.container, command)
 
     def make(self):
         pass
@@ -54,7 +57,16 @@ class Caffe_Workload(Workload):
         command = 'docker cp %s %s:/home/caffe/' % (self.__class__.run_script, self.container)
         command = sudo_wrapper(command)
         os.popen(command)
-         
+                
+
+    def get_log(self):
+        tmp_dir = '/tmp/%s' % self.request_id
+        os.mkdir(tmp_dir)
+        command = 'docker cp %s:/tmp/log %s' % (self.container, tmp_dir)
+        os.popen(command)
+        command = 'tar zcvf log/%s.tar.gz %s' % (self.request_id, tmp_dir)
+        os.popen(command)
+                
     def build_in_docker(self):
         pass
 
@@ -70,6 +82,8 @@ class Caffe_Workload(Workload):
                 for source in self.__class__.source:
                     result_item = self.run_specific_config(topology, iterations, bz, gpuid, source, raw_buffer)
                     results.append(result_item)
+        if (self.nvprof):
+            self.get_log()
         return results
              
     def run_specific_config(self, topology, iterations, batch_size, gpuid, caffe_source, raw_buffer):

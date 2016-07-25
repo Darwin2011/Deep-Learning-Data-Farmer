@@ -36,10 +36,8 @@ class TestRequest(tornado.web.RequestHandler):
         self.__class__.lock.release() 
         options = {}
         options['email']      = self.get_argument('email')
-
         batch_size            = self.get_argument('batch_size')
         options['batch_size'] = 0 if batch_size == 'auto' else batch_size
-
         options['iterations'] = self.get_argument('iterations')
         options['gpu_model']  = self.get_argument('gpu_model')
         options['topology']   = self.get_argument('topology')
@@ -47,6 +45,7 @@ class TestRequest(tornado.web.RequestHandler):
         options['cuda']       = self.get_argument('CUDA')
         options['cudnn']      = self.get_argument('CUDNN')
         options['framework']  = self.get_argument('framework')
+        options['profiling']  = self.get_argument('profiling')
 
         timestamp      = datetime.datetime.now().strftime("%s")
         request_string = 'request_%s_%d' % (timestamp, self.__class__.request_id)
@@ -141,7 +140,8 @@ if __name__ == '__main__':
         (r"/history",      TestHistory),          \
         (r"/detail",       TestDetail),           \
         (r'/css/(.*)',     tornado.web.StaticFileHandler, {'path': 'template/css'}), \
-        (r'/js/(.*)',      tornado.web.StaticFileHandler, {'path': 'template/js'})
+        (r'/js/(.*)',      tornado.web.StaticFileHandler, {'path': 'template/js'}), \
+        (r'/log/(.*)',     tornado.web.StaticFileHandler, {'path': './log'})
     ])
     http_server = tornado.httpserver.HTTPServer(app)
     http_server.listen(options.port)

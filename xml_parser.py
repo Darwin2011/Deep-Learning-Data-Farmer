@@ -55,6 +55,7 @@ class XMLParser(object):
             self.config_dicts['topology'] = [self.config_dicts['topology']]
         self.config_dicts['cudnn_string'] = self.__class__.cudnn_strings[str(self.config_dicts['cudnn'])] 
         self.config_dicts['cuda_string'] = self.__class__.cuda_strings[str(self.config_dicts['cuda'])] 
+        self.config_dicts['profiling'] = True if self.config_dicts['profiling'] == 'true' else False
         self.config_dicts['tensorflow'] = False
         self.config_dicts['caffe'] = False
         for fw in self.config_dicts['framework']:

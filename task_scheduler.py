@@ -87,32 +87,32 @@ class Task_Scheduler(object):
         return False if request['gpu_device'].blocked else True
        
  
-    def test_start(self, config):
-        index = self.docker_control.get_image_index(config['cuda_string'], config['cudnn_string'], config['caffe'], config['tensorflow'])
+    def test_start(self, request):
+        index = self.docker_control.get_image_index(request['cuda_string'], request['cudnn_string'], request['caffe'], request['tensorflow'])
         if index == -1:
             # TODO
             self.build_image()
             # TODO
             # docker control inert docker_image_info into database
-            index = self.docker_control.get_image_index(config['cuda_string'], config['cudnn_string'], config['caffe'], config['tensorflow'])
-        gpuid = config['gpu_id'] 
+            index = self.docker_control.get_image_index(request['cuda_string'], request['cudnn_string'], request['caffe'], request['tensorflow'])
+        gpuid = request['gpu_id'] 
+        request_id = request['request_id']
         image = self.docker_control.get_image(index)
         container = get_random_container()
         execute(run_docker(container, image.repository, image.tag))
-        test_workload = Caffe_Workload(container)
+        test_workload = Caffe_Workload(container, request_id, request['profiling'])
         test_workload.copy()
-        results = test_workload.run_batch(config['topology'], config['iterations'], config['batch_size'], gpuid, config['raw_buffer'])
+        results = test_workload.run_batch(request['topology'], request['iterations'], request['batch_size'], gpuid, request['raw_buffer'])
         farmer_log.info(results)
-        farmer_log.info(config) 
-        request_id = config['request_id']
+        farmer_log.info(request) 
         self.sql_wrapper.inert_item_in_request_reports(request_id, container,
-           config["gpu_model"], config["email"], config["framework"],
-           config["topology"], config["batch_size"], config["iterations"])
+           request["gpu_model"], request["email"], request["framework"],
+           request["topology"], request["batch_size"], request["iterations"])
         for result in results:
             self.sql_wrapper.inert_item_in_result_reports(\
                 request_id, \
                 container, \
-                config["gpu_model"], \
+                request["gpu_model"], \
                 result['framework'], \
                 result['topology'],\
                 result['batch_size'],\
@@ -122,7 +122,7 @@ class Task_Scheduler(object):
                 result['training images per second']
             )
         execute(stop_docker(container))
-        config["state"] = self.__class__.TASK_STATE.Finish
+        request["state"] = self.__class__.TASK_STATE.Finish
         return True
 
     def response_gpu_state_request(self, request_id):

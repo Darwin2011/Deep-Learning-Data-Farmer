@@ -292,7 +292,7 @@ class GPUMonitor(object):
 
 
     def init_local_gpu_lists(self):
-        command = "nvidia-smi -L | awk -F: '{print $1}' | awk -F' ' '{print $2}'"
+        command = "nvidia-smi -L | awk -F':' '{print $1}' | awk -F' ' '{print $2}'"
         command = self.sudo_wrapper(command)
         fp = os.popen(command)
         for gpu_id in fp:
