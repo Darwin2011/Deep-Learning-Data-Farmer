@@ -25,6 +25,15 @@ class Mysql_wrapper():
         Returns:
         """
         cursor = self.connection.cursor()
+
+        create_accounts_table_cmd = """CREATE TABLE IF NOT EXISTS accounts
+        (id             INT             NOT NULL AUTO_INCREMENT,
+         USER           VARCHAR(500)    NOT NULL,
+         PASSORD        VARCHAR(500)    NOT NULL,
+         CURRENT_IP     VARCHAR(500)    NOT NULL,
+         HAVE_LOGINED   BOOL            NOT NULL,
+         PRIMARY KEY (id));"""
+
         create_docker_images_table_cmd  = """CREATE TABLE IF NOT EXISTS docker_images
         (id                   INT          NOT NULL AUTO_INCREMENT,
          REPOSITORY           VARCHAR(500) NOT NULL,
@@ -64,22 +73,88 @@ class Mysql_wrapper():
         IMAGES_PRE_SEC DOUBLE       NOT NULL,
         PRIMARY KEY (id));"""
 
+        #execute initalizing the user account table command
+        self.create_table(create_accounts_table_cmd, cursor)
+
         # execute initalizing the docker_images command
-        farmer_log.info("init docker_images table : [%s]" % create_docker_images_table_cmd)
-        cursor.execute(create_docker_images_table_cmd)
-        farmer_log.info(cursor.fetchall())
-        self.connection.commit()
+        self.create_table(create_docker_images_table_cmd, cursor)
 
         # execute initalizing the request_reports command
-        farmer_log.info("init request_reports table : [%s]" % create_request_reports_table_cmd)
-        cursor.execute(create_request_reports_table_cmd)
-        farmer_log.info(cursor.fetchall())
+        self.create_table(create_request_reports_table_cmd, cursor)
 
         # execute initalizing the result_reports command
-        farmer_log.info("init result_reports table : [%s]" % create_result_report_table_cmd)
-        cursor.execute(create_result_report_table_cmd)
-        farmer_log.info(cursor.fetchall())
+        self.create_table(create_result_report_table_cmd, cursor)
+
         cursor.close()
+
+    def create_account(self, user, password, current_ip):
+        cursor = self.connection.cursor()
+        try:
+            inserted_sql = '''INSERT INTO accounts
+                  (USER,   PASSWORD,       CURRENT_IP, HAVE_LOGINED)
+            VALUES("%s",   "%s",           "%s",    False);''' % \
+                   (user,  password,       current_ip)
+            farmer_log.debug(inserted_sql)
+            cursor.execute(inserted_sql)
+            self.connection.commit()
+            output = cursor.fetchall()
+            farmer_log.info(output)
+        except Exception as e:
+            self.connection.rollback()
+            farmer_log.error("inert_account_info:" + e.message)
+        finally:
+            cursor.close()
+
+    def exists_account(self, user, password):
+        result = False
+        cursor = self.connection.cursor()
+        try:
+            select_sql = """select id from accounts where
+            USER = "%s" AND PASSWORD = "%s";""" % (user, password)
+            farmer_log.info(select_sql)
+            cursor.execute(select_sql)
+            self.connection.commit()
+            if 1 == cursor.rowcount:
+                result = True
+            elif 0 == cursor.rowcount:
+                result = False
+            else:
+                farmer_log.error("The account have exists more than one.user[%s] password[%s]" % (user, password))
+        except Exception as e:
+            self.connection.rollback()
+            farmer_log.error("exists_account error [%s]" % e.message)
+
+    def account_login(self, user, password, current_ip):
+        cursor = self.connection.cursor()
+        try:
+            login_sql = """UPDATE accounts
+            SET CURRENT_IP = "%s", HAVE_LOGINED = TRUE
+            where USER = "%s" AND PASSWORD = "%s";""" % (current_ip, user, password)
+            farmer_log.info(login_sql)
+            cursor.execute(login_sql)
+            self.connection.commit()
+        except Exception as e:
+            self.connection.rollback()
+            farmer_log.error("account_login error [%s]" % e.message)
+
+    def account_logout(self, user, password, current_ip):
+        cursor = self.connection.cursor()
+        try:
+            login_sql = """UPDATE accounts
+            SET CURRENT_IP = "%s", HAVE_LOGINED = FALSE
+            where USER = "%s" AND PASSWORD = "%s";""" % (current_ip, user, password)
+            farmer_log.info(login_sql)
+            cursor.execute(login_sql)
+            self.connection.commit()
+        except Exception as e:
+            self.connection.rollback()
+            farmer_log.error("account_logout error [%s]" % e.message)
+
+    def create_table(self, sql_command, cursor):
+        farmer_log.info("init table : [%s]" % sql_command)
+        cursor.execute(sql_command)
+        farmer_log.info(cursor.fetchall())
+        self.connection.commit()
 
     def has_image_in_db_by_rep_tag(self, repository, tag):
         result = False

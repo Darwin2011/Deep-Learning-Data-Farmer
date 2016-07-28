@@ -11,6 +11,12 @@ from xml.dom.minidom import parseString
 from gpu_control import *
 from task_scheduler import *
 import farmer_log
+import hashlib
+
+def md5(password):
+    md5Obj = hashlib.md5()
+    md5Obj.update(password)
+    return md5Obj.hexdigest()
 
 from tornado.options import define, options
 define('port', default=8000, help='run on the given port', type=int)
@@ -103,6 +109,11 @@ class TestDetail(tornado.web.RequestHandler):
         request_id = self.get_argument("request")
         self.render(self.__class__.test_detail_html, results = scheduler.sql_wrapper.get_result_by_request_id(request_id))
 
+class TestSignIn(tornado.web.RequestHandler):
+    sign_in_html = "template/login.html"
+
+    def get(self):
+        self.render(self.sign_in_html)
 
 class TestRawLogResponse(tornado.web.RequestHandler):
     @tornado.web.asynchronous
@@ -139,6 +150,7 @@ if __name__ == '__main__':
         (r"/gpustate",     GPUState),             \
         (r"/history",      TestHistory),          \
         (r"/detail",       TestDetail),           \
+        (r"/login",        TestSignIn),           \
         (r'/css/(.*)',     tornado.web.StaticFileHandler, {'path': 'template/css'}), \
         (r'/js/(.*)',      tornado.web.StaticFileHandler, {'path': 'template/js'}), \
         (r'/log/(.*)',     tornado.web.StaticFileHandler, {'path': './log'})

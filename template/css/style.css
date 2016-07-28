@@ -162,6 +162,18 @@ body{
     border: 1px solid#eee;
 	background: #eee;
 }
+
+.property-section input[type="password"] {
+    outline: none;
+    font-size: 0.95em;
+    color: #222;
+    padding: .8em 1em;
+    width: 90%;
+    margin-top: 1em ;
+    font-family: 'Open Sans', sans-serif;
+    border: 1px solid#eee;
+	background: #eee;
+}
 .sel {
     width: 97%;
     padding: .8em 1em;

@@ -22,25 +22,32 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 <body>
 		<!---header--->
 		<div class="header">
-			<h1>GPU Test Farmer</h1>
+			<h1>Sign In</h1>
 		</div>
 		<!---header--->
 		<!---main--->
         <div class="main">
-				<div class="main-section">
-					<div class="property-section">
-                        <div style="margin: 1em;">
-                            <input type="submit" value="History" onclick="location.href='/history?page=1'"/>
-                        </div>
-                        <div style="margin: 1em;">
-                            <input type="submit" value="Request" onclick="location.href='/request'"/>
-                        </div>
-                        <div style="margin: 1em;">
-                            <input type="submit" value="Login"   onclick="location.href='/login'"/>
+			<div class="main-section">
+				<div class="property-section">
+					<div class="property-bottom">
+						<form action="#" method="post">
+								<div class="select-section">
+									<div style="margin: 1em;">
+                                        <label style="display: block"><h4>User     :</h4></label>
+									    <input name="User"     type="text"     class="pretty-input" />
+                                    </div>
+                                    <div style="margin: 1em;">
+                                        <label style="display: block"><h4>Password :</h4></label>
+									    <input name="Password" type="password" class="pretty-input" />
+                                    </div>
+                                </div>
+                            <input type="submit" value="Login">
+                            </form>
                         </div>
                     </div>
                 </div>
-        </div>
+            </div>
+
         <div class="footer">
             <p>Copyright 2016 Intel PCS. All rights reserved</p>
 		</div>
