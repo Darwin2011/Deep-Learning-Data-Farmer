@@ -30,7 +30,7 @@ class Mysql_wrapper():
         (id             INT             NOT NULL AUTO_INCREMENT,
          USER           VARCHAR(500)    NOT NULL,
          PASSORD        VARCHAR(500)    NOT NULL,
-         CURRENT_IP     VARCHAR(500)    NOT NULL,
+         MAIL           VARCHAR(500)    NOT NULL,
          HAVE_LOGINED   BOOL            NOT NULL,
          PRIMARY KEY (id));"""
 
@@ -87,13 +87,13 @@ class Mysql_wrapper():
 
         cursor.close()
 
-    def create_account(self, user, password, current_ip):
+    def create_account(self, user, password, mail):
         cursor = self.connection.cursor()
         try:
             inserted_sql = '''INSERT INTO accounts
-                  (USER,   PASSWORD,       CURRENT_IP, HAVE_LOGINED)
+                  (USER,   PASSWORD,       MAIL, HAVE_LOGINED)
             VALUES("%s",   "%s",           "%s",    False);''' % \
-                   (user,  password,       current_ip)
+                   (user,  password,       mail)
             farmer_log.debug(inserted_sql)
             cursor.execute(inserted_sql)
             self.connection.commit()
@@ -105,12 +105,12 @@ class Mysql_wrapper():
         finally:
             cursor.close()
 
-    def exists_account(self, user, password):
+    def exists_account(self, user):
         result = False
         cursor = self.connection.cursor()
         try:
             select_sql = """select id from accounts where
-            USER = "%s" AND PASSWORD = "%s";""" % (user, password)
+            USER = "%s";""" % user
             farmer_log.info(select_sql)
             cursor.execute(select_sql)
             self.connection.commit()
@@ -119,17 +119,17 @@ class Mysql_wrapper():
             elif 0 == cursor.rowcount:
                 result = False
             else:
-                farmer_log.error("The account have exists more than one.user[%s] password[%s]" % (user, password))
+                farmer_log.error("The account have exists more than one.user[%s]" % user)
         except Exception as e:
             self.connection.rollback()
             farmer_log.error("exists_account error [%s]" % e.message)
 
-    def account_login(self, user, password, current_ip):
+    def account_login(self, user, password):
         cursor = self.connection.cursor()
         try:
             login_sql = """UPDATE accounts
-            SET CURRENT_IP = "%s", HAVE_LOGINED = TRUE
-            where USER = "%s" AND PASSWORD = "%s";""" % (current_ip, user, password)
+            SET HAVE_LOGINED = TRUE
+            where USER = "%s" AND PASSWORD = "%s";""" % (user, password)
             farmer_log.info(login_sql)
             cursor.execute(login_sql)
             self.connection.commit()
@@ -137,12 +137,12 @@ class Mysql_wrapper():
             self.connection.rollback()
             farmer_log.error("account_login error [%s]" % e.message)
 
-    def account_logout(self, user, password, current_ip):
+    def account_logout(self, user, password):
         cursor = self.connection.cursor()
         try:
             login_sql = """UPDATE accounts
-            SET CURRENT_IP = "%s", HAVE_LOGINED = FALSE
-            where USER = "%s" AND PASSWORD = "%s";""" % (current_ip, user, password)
+            SET HAVE_LOGINED = FALSE
+            where USER = "%s" AND PASSWORD = "%s";""" % (user, password)
             farmer_log.info(login_sql)
             cursor.execute(login_sql)
             self.connection.commit()

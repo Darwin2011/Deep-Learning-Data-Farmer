@@ -18,6 +18,44 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 <link href='//fonts.googleapis.com/css?family=Josefin+Sans:400,100,100italic,300,300italic,400italic,600,600italic,700,700italic' rel='stylesheet' type='text/css'>
 <!-- js -->
 <script type="text/javascript" src="js/jquery-2.1.4.min.js"></script>
+<script>
+function validate()
+{
+    passwordElem = document.getElementById("password");
+    confirmElem = document.getElementById("confirm");
+    password = passwordElem.value;
+    confirm = confirmElem.value;
+    if (password != confirm)
+    {
+        alert("The password and the confirmed password are not the same.");
+        passwordElem.value = "";
+        confirmElem.value = "";
+        passwordElem.focus();
+    }
+}
+
+var user_request = new XMLHttpRequest();
+user_request.onreadystatechange = function(){
+    if ((user_request.readyState == 4) && (user_request.status==200))
+    {
+        res = user_request.responseText;
+        if (res == 'True')
+        {
+           document.getElementById("info").innerHTML = "The user name have existed. Please type other user name";
+        }
+        else
+        {
+           document.getElementById("info").innerHTML = "The user name corrects.";
+        }  
+    }
+}
+
+function validate_user(id){
+    user_name = document.getElementById(id).value;
+    user_request.open("GET", "/accountRes?user=" + user_name,  true);
+    user_request.send();
+}
+</script>
 <!-- //js -->
 <body>
 		<!---header--->
@@ -32,21 +70,24 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 					<div class="property-bottom">
 						<form action="#" method="post">
 								<div class="select-section">
+                                    <div style="margin: 1em;">
+                                    <label id="info" style="display: block"><h5>You haven't signned up. Please type the account informations.</h5></label>
+                                    </div>
 									<div style="margin: 1em;">
                                         <label style="display: block"><h4>Mail :</h4></label>
 									    <input name="mail"     type="text"     class="pretty-input" />
                                     </div>
                                     <div style="margin: 1em;">
                                         <label style="display: block"><h4>User :</h4></label>
-									    <input name="user" type="text" class="pretty-input" />
+									    <input id="user_name" name="user" type="text" class="pretty-input" onchange="validate_user(this.id)"/>
                                     </div>
                                     <div style="margin: 1em;">
                                         <label style="display: block"><h4>Password :</h4></label>
-									    <input name="passwd" type="password" class="pretty-input" />
+									    <input id="password" name="passwd" type="password" class="pretty-input" />
                                     </div>
                                     <div style="margin: 1em;">
                                         <label style="display: block"><h4>Confirm Password :</h4></label>
-									    <input name="comfirm" type="password" class="pretty-input" />
+									    <input id="confirm" name="confirm" type="password" class="pretty-input" onblur="validate()"/>
                                     </div>
                                 </div>
                             <input type="submit" value="Login">

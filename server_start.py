@@ -29,6 +29,12 @@ class TestIndex(tornado.web.RequestHandler):
     def get(self):
         self.render(self.__class__.index_html)
 
+class TestIndex_fake(tornado.web.RequestHandler):
+    index_html = 'template/index_fake.html'
+
+    def get(self):
+        self.render(self.index_html)
+
 class TestRequest(tornado.web.RequestHandler):
     test_request_html = 'template/test_request.html'
     request_id = 0
@@ -115,6 +121,23 @@ class TestSignIn(tornado.web.RequestHandler):
     def get(self):
         self.render(self.sign_in_html)
 
+    def post(self):
+        email    = self.get_argument('email')
+        user     = self.get_argument('user')
+        password = self.get_argument('password')
+        have_created = scheduler.create_account(user, password, email)
+        if have_created:
+            self.redirect('/sign_in')
+        else:
+            self.redirect('#')
+
+
+class TestSignUp(tornado.web.RequestHandler):
+    sign_up_html = 'template/sign_up.html'
+
+    def get(self):
+        self.render(self.sign_up_html)
+
 class TestRawLogResponse(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     def get(self):
@@ -129,6 +152,12 @@ class RequestState(tornado.web.RequestHandler):
         self.write(str(scheduler.requests[request_id]["state"]))
         self.finish()
 
+class AccountResponse(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    def get(self):
+        user = self.get_argument("user")
+        self.write(str(scheduler.sql_wrapper.exists_account(user)))
+        self.finish()
 
 class GPUState(tornado.web.RequestHandler):
     @tornado.web.asynchronous
@@ -141,16 +170,19 @@ if __name__ == '__main__':
     tornado.options.parse_command_line()
     app = tornado.web.Application(handlers = [
         (r'/index',        TestIndex),            \
+        (r'/index_fake',   TestIndex_fake),       \
         (r'/request',      TestRequest),          \
         (r'/status',       TestStatus),           \
         (r"/result",       TestResult),           \
         (r"/rawlog",       TestRawLogResponse),   \
         (r"/rawlogbuffer", TestRawLogResponse),   \
+        (r"/accountRes",   AccountResponse),      \
         (r"/requeststate", RequestState),         \
         (r"/gpustate",     GPUState),             \
         (r"/history",      TestHistory),          \
         (r"/detail",       TestDetail),           \
-        (r"/login",        TestSignIn),           \
+        (r'/sign_in',      TestSignIn),           \
+        (r'/sign_up',      TestSignUp),           \
         (r'/css/(.*)',     tornado.web.StaticFileHandler, {'path': 'template/css'}), \
         (r'/js/(.*)',      tornado.web.StaticFileHandler, {'path': 'template/js'}), \
         (r'/log/(.*)',     tornado.web.StaticFileHandler, {'path': './log'})
