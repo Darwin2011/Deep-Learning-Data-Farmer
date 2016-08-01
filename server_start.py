@@ -24,7 +24,7 @@ define('port', default=8000, help='run on the given port', type=int)
 scheduler = Task_Scheduler()
 
 class TestIndex(tornado.web.RequestHandler):
-    index_html = 'template/index.html'
+    index_html = 'template/dashboard.html'
 
     def get(self):
         self.render(self.__class__.index_html)
@@ -110,7 +110,7 @@ class TestDetail(tornado.web.RequestHandler):
         self.render(self.__class__.test_detail_html, results = scheduler.sql_wrapper.get_result_by_request_id(request_id))
 
 class TestSignIn(tornado.web.RequestHandler):
-    sign_in_html = "template/login.html"
+    sign_in_html = "template/sign_in.html"
 
     def get(self):
         self.render(self.sign_in_html)
