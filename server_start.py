@@ -12,6 +12,10 @@ from gpu_control import *
 from task_scheduler import *
 import farmer_log
 import hashlib
+import base64, uuid
+
+def get_cookie_secret():
+    return base64.b64encode(uuid.uuid4().bytes + uuid.uuid4().bytes)
 
 def md5(password):
     md5Obj = hashlib.md5()
@@ -23,22 +27,29 @@ define('port', default=8000, help='run on the given port', type=int)
 
 scheduler = Task_Scheduler()
 
-class TestIndex(tornado.web.RequestHandler):
+class BaseHandler(tornado.web.RequestHandler):
+    def get_current_user(self):
+        return self.get_secure_cookie("username")
+
+class TestIndex(BaseHandler):
     index_html = 'template/dashboard.html'
 
+    @tornado.web.authenticated
     def get(self):
         self.render(self.__class__.index_html)
 
-class TestIndex_fake(tornado.web.RequestHandler):
+class TestIndex_fake(BaseHandler):
     index_html = 'template/index_fake.html'
 
     def get(self):
         self.render(self.index_html)
 
-class TestRequest(tornado.web.RequestHandler):
+class TestRequest(BaseHandler):
     test_request_html = 'template/test_request.html'
     request_id = 0
     lock = threading.Lock()
+
+    @tornado.web.authenticated
     def get(self):
         self.render(self.__class__.test_request_html, gpus = scheduler.gpu_monitor.gpulists)
 
@@ -74,16 +85,17 @@ class TestRequest(tornado.web.RequestHandler):
         scheduler.assign_request(filepath)
         self.redirect('/result?request=%s' % request_string)
 
-class TestStatus(tornado.web.RequestHandler):
+class TestStatus(BaseHandler):
     test_status_html = 'template/test_status.html'
 
     def get(self):
         self.render(self.__class__.test_status_html, gpus = scheduler.gpu_monitor.gpulists)
 
-class TestHistory(tornado.web.RequestHandler):
+class TestHistory(BaseHandler):
     PAGE_SIZE = 20 
     test_history_html = 'template/test_history.html'
 
+    @tornado.web.authenticated
     def get(self):
         page_num = int(self.get_argument("page"))
         start_index = self.__class__.PAGE_SIZE * (page_num - 1)
@@ -99,32 +111,55 @@ class TestHistory(tornado.web.RequestHandler):
                      request_reports = request_reports, page = page_num,\
                      is_last_page = is_last_page)
 
-class TestResult(tornado.web.RequestHandler):
+class TestResult(BaseHandler):
     test_result_html = 'template/test_result.html'
 
+    @tornado.web.authenticated
     def get(self):
         request_id = self.get_argument("request")
         self.render(self.__class__.test_result_html, results = scheduler.sql_wrapper.get_result_by_request_id(request_id), buffer_log = scheduler.requests[request_id]['raw_buffer'], request_id = request_id, state = str(scheduler.requests[request_id]['state']), gpu = scheduler.requests[request_id]['gpu_device'], request = scheduler.requests[request_id])
 
 
-class TestDetail(tornado.web.RequestHandler):
+class TestDetail(BaseHandler):
     test_detail_html = 'template/test_detail.html'
-
+    
+    @tornado.web.authenticated
     def get(self):
         # fake to get the request id
         request_id = self.get_argument("request")
         self.render(self.__class__.test_detail_html, results = scheduler.sql_wrapper.get_result_by_request_id(request_id))
 
-class TestSignIn(tornado.web.RequestHandler):
+class TestSignIn(BaseHandler):
     sign_in_html = "template/sign_in.html"
 
     def get(self):
         self.render(self.sign_in_html)
 
     def post(self):
+        user     = self.get_argument('user')
+        password = self.get_argument('password')
+        farmer_log.info("Sign up info: user[%s] password[%s]" % (user, password))
+        user_id, username  = scheduler.exists_account(user, password)
+        farmer_log.info("user_id[%d] username[%s]" % (user_id, username))
+        if user_id != -1:
+            self.set_secure_cookie("username", username)
+            self.set_secure_cookie("user_id", "%d" % user_id)
+            self.redirect(self.get_argument("next",r"/index"))
+        else:
+            self.write("The user name or password doesn't correct.")
+
+
+class TestSignUp(BaseHandler):
+    sign_up_html = 'template/sign_up.html'
+
+    def get(self):
+        self.render(self.sign_up_html)
+    
+    def post(self):
         email    = self.get_argument('email')
         user     = self.get_argument('user')
         password = self.get_argument('password')
+        farmer_log.info("Sign up info: email[%s] user[%s] password[%s]" % (email, user, password))
         have_created = scheduler.create_account(user, password, email)
         if have_created:
             self.redirect('/sign_in')
@@ -132,34 +167,28 @@ class TestSignIn(tornado.web.RequestHandler):
             self.redirect('#')
 
 
-class TestSignUp(tornado.web.RequestHandler):
-    sign_up_html = 'template/sign_up.html'
-
-    def get(self):
-        self.render(self.sign_up_html)
-
-class TestRawLogResponse(tornado.web.RequestHandler):
+class TestRawLogResponse(BaseHandler):
     @tornado.web.asynchronous
     def get(self):
         request_id = self.get_argument("request")
         self.write(str(scheduler.requests[request_id]['raw_buffer']))
         self.finish()
 
-class RequestState(tornado.web.RequestHandler):
+class RequestState(BaseHandler):
     @tornado.web.asynchronous
     def get(self):
         request_id = self.get_argument("request")
         self.write(str(scheduler.requests[request_id]["state"]))
         self.finish()
 
-class AccountResponse(tornado.web.RequestHandler):
+class AccountResponse(BaseHandler):
     @tornado.web.asynchronous
     def get(self):
         user = self.get_argument("user")
-        self.write(str(scheduler.sql_wrapper.exists_account(user)))
+        self.write(str(scheduler.sql_wrapper.exists_user(user)))
         self.finish()
 
-class GPUState(tornado.web.RequestHandler):
+class GPUState(BaseHandler):
     @tornado.web.asynchronous
     def get(self):
         request_id = self.get_argument("request")
@@ -168,6 +197,12 @@ class GPUState(tornado.web.RequestHandler):
 
 if __name__ == '__main__':
     tornado.options.parse_command_line()
+    
+    settings = {
+        "cookie_secret" : get_cookie_secret(),
+        "xsrf_cookies"  : True,
+        "login_url"     : r"/sign_in"
+    }
     app = tornado.web.Application(handlers = [
         (r'/index',        TestIndex),            \
         (r'/index_fake',   TestIndex_fake),       \
@@ -186,7 +221,7 @@ if __name__ == '__main__':
         (r'/css/(.*)',     tornado.web.StaticFileHandler, {'path': 'template/css'}), \
         (r'/js/(.*)',      tornado.web.StaticFileHandler, {'path': 'template/js'}), \
         (r'/log/(.*)',     tornado.web.StaticFileHandler, {'path': './log'})
-    ])
+    ], **settings)
     http_server = tornado.httpserver.HTTPServer(app)
     http_server.listen(options.port)
     tornado.ioloop.IOLoop.instance().start()

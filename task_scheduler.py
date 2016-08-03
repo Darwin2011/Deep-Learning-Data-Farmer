@@ -38,14 +38,17 @@ class Task_Scheduler(object):
     def build_image(self):
         pass
 
-    def create_account(self, mail, user, password):
+    def create_account(self, user, password, mail):
         result = False
-        if self.sql_wrapper.exists_account(user):
+        if self.sql_wrapper.exists_user(user):
             result = False
         else:
             self.sql_wrapper.create_account(user, password, mail)
             result = True
         return result
+
+    def exists_account(self, user, password):
+        return self.sql_wrapper.account_login(user, password)
 
     def parse_new_request_from_xml(self, filepath):
         xml_parser = XMLParser(filepath)
