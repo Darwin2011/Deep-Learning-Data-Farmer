@@ -117,7 +117,13 @@ class TestResult(BaseHandler):
     @tornado.web.authenticated
     def get(self):
         request_id = self.get_argument("request")
-        self.render(self.__class__.test_result_html, results = scheduler.sql_wrapper.get_result_by_request_id(request_id), buffer_log = scheduler.requests[request_id]['raw_buffer'], request_id = request_id, state = str(scheduler.requests[request_id]['state']), gpu = scheduler.requests[request_id]['gpu_device'], request = scheduler.requests[request_id])
+        self.render(self.__class__.test_result_html, \
+            results     = scheduler.sql_wrapper.get_result_by_request_id(request_id),\
+            buffer_log  = scheduler.requests[request_id]['raw_buffer'],\
+            request_id  = request_id,\
+            state       = str(scheduler.requests[request_id]['state']),\
+            gpu         = scheduler.requests[request_id]['gpu_device'], \
+            request     = scheduler.requests[request_id])
 
 
 class TestDetail(BaseHandler):
@@ -127,7 +133,8 @@ class TestDetail(BaseHandler):
     def get(self):
         # fake to get the request id
         request_id = self.get_argument("request")
-        self.render(self.__class__.test_detail_html, results = scheduler.sql_wrapper.get_result_by_request_id(request_id))
+        results    = scheduler.sql_wrapper.get_result_by_request_id(request_id)
+        self.render(self.__class__.test_detail_html, results = results)
 
 class TestSignIn(BaseHandler):
     sign_in_html = "template/sign_in.html"
@@ -166,6 +173,10 @@ class TestSignUp(BaseHandler):
         else:
             self.redirect('#')
 
+class TestSignOut(BaseHandler):
+    def get(self):
+        self.clear_cookie("username")
+        self.redirect("/sign_in")
 
 class TestRawLogResponse(BaseHandler):
     @tornado.web.asynchronous
@@ -196,6 +207,7 @@ class GPUState(BaseHandler):
         self.finish()
 
 if __name__ == '__main__':
+if __name__ == '__main__':
     tornado.options.parse_command_line()
     
     settings = {
@@ -212,6 +224,7 @@ if __name__ == '__main__':
         (r"/rawlog",       TestRawLogResponse),   \
         (r"/rawlogbuffer", TestRawLogResponse),   \
         (r"/accountRes",   AccountResponse),      \
+        (r"/signout",      TestSignOut),          \
         (r"/requeststate", RequestState),         \
         (r"/gpustate",     GPUState),             \
         (r"/history",      TestHistory),          \
@@ -224,4 +237,4 @@ if __name__ == '__main__':
     ], **settings)
     http_server = tornado.httpserver.HTTPServer(app)
     http_server.listen(options.port)
-    tornado.ioloop.IOLoop.instance().start()
+    tornado.ioloop.IOLoop.instance().start() 
