@@ -52,24 +52,30 @@ login_request.onreadystatechange = function(){
 						<form id="login_form" action="#" method="post">
 	                        {% raw xsrf_form_html() %}	
     						<div class="select-section"> 
-									<div style="margin: 1em;">
-                                        <label id="info" style="display: block"><h5>Please type the user and the password</h5></label>
-                                    </div>
-									<div style="margin: 1em;">
-                                        <label style="display: block"><h4>User     :</h4></label>
-									    <input name="user"     type="text"     class="pretty-input" />
-                                    </div>
-                                    <div style="margin: 1em;">
-                                        <label style="display: block"><h4>Password :</h4></label>
-									    <input name="password" type="password" class="pretty-input" />
-                                    </div>
+								<div style="margin: 1em;">
+                                    <label id="info" style="display: block"><h5>Please type the user and the password</h5></label>
                                 </div>
-                            <input type="submit" value="Login">
-                            </form>
+								<div style="margin: 1em;">
+                                    <label style="display: block"><h4>User     :</h4></label>
+								    <input name="user"     type="text"     class="pretty-input" />
+                                </div>
+                                <div style="margin: 1em;">
+                                    <label style="display: block"><h4>Password :</h4></label>
+								    <input name="password" type="password" class="pretty-input" />
+                                </div>
+                                <div style="margin: 1em;">
+                                    <input type="submit" value="Login">
+                                </div>
+                            </div>
+                        </form>
+                        <hr />
+                        <div style="margin: 1em;">
+                             <input type="submit" value="sign up" onclick="location.href='/sign_up'" />
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
         <div class="footer">
             <p>Copyright 2016 Intel PCS. All rights reserved</p>
