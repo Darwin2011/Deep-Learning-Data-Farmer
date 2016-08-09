@@ -42,6 +42,7 @@ License URL: http://creativecommons.org/licenses/by/3.0/
                             <td><h4>Batch size</h4></td>
                             <td><h4>Iteration</h4></td>
                             <td><h4>Date</h4></td>
+                            <td><h4>Download</h4></td>
                     </tr>
                         {% for request_item in request_reports %}
                     <tr>
@@ -55,6 +56,7 @@ License URL: http://creativecommons.org/licenses/by/3.0/
                         <td>{{ request_item.batch_size   }}</td>
                         <td>{{ request_item.iteration    }}</td>
                         <td>{{ request_item.request_time }}</td>
+                        <td><a href="/download?request={{ request_item.request_id }}"/>download</a></td>
                     </tr>
                         {% end %}
                 </table>

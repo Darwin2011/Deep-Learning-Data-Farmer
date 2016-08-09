@@ -100,16 +100,17 @@ class TestHistory(BaseHandler):
         page_num = int(self.get_argument("page"))
         start_index = self.__class__.PAGE_SIZE * (page_num - 1)
         count = self.__class__.PAGE_SIZE + 1
-        request_reports = scheduler.sql_wrapper.get_request_reports(start_index, count)
+        request_reports_mediator = scheduler.sql_wrapper.get_request_reports(start_index, count)
         is_last_page = False
-        if len(request_reports) < count:
+        if len(request_reports_mediator) < count:
             is_last_page = True
         else:
             is_last_page = False
-            request_reports.pop()
+            request_reports_mediator.pop()
         self.render(self.__class__.test_history_html,\
-                     request_reports = request_reports, page = page_num,\
-                     is_last_page = is_last_page)
+                    request_reports = request_reports_mediator.to_request_objects(),\
+                    page = page_num,\
+                    is_last_page = is_last_page)
 
 class TestResult(BaseHandler):
     test_result_html = 'template/test_result.html'
@@ -117,8 +118,9 @@ class TestResult(BaseHandler):
     @tornado.web.authenticated
     def get(self):
         request_id = self.get_argument("request")
+        results = scheduler.sql_wrapper.get_result_by_request_id(request_id).to_result_objects()
         self.render(self.__class__.test_result_html, \
-            results     = scheduler.sql_wrapper.get_result_by_request_id(request_id),\
+            results     = results, \
             buffer_log  = scheduler.requests[request_id]['raw_buffer'],\
             request_id  = request_id,\
             state       = str(scheduler.requests[request_id]['state']),\
@@ -133,7 +135,7 @@ class TestDetail(BaseHandler):
     def get(self):
         # fake to get the request id
         request_id = self.get_argument("request")
-        results    = scheduler.sql_wrapper.get_result_by_request_id(request_id)
+        results    = scheduler.sql_wrapper.get_result_by_request_id(request_id).to_result_objects()
         self.render(self.__class__.test_detail_html, results = results)
 
 class TestSignIn(BaseHandler):
@@ -178,6 +180,25 @@ class TestSignOut(BaseHandler):
         self.clear_cookie("username")
         self.redirect("/sign_in")
 
+class ResultReportDownloader(BaseHandler):
+    @tornado.web.asynchronous
+    def get(self):
+        if not os.path.exists("./xlsx"):
+            os.mkdir("./xlsx")
+            farmer_log.info("Make xlsx directory.")
+        request_id = self.get_argument("request")
+        download_file = scheduler.make_download_file(request_id)
+        self.set_header("Content-Type", "application/octet-stream")
+        self.set_header("Content-Disposition", "attachment; filename=" + download_file)
+        with open("./xlsx/" + download_file, 'rb') as fileObj:
+            farmer_log.info("open the request(%s) xlsx." % request_id)
+            while True:
+                data = fileObj.read(4096)
+                if not data:
+                    break
+                self.write(data)
+        self.finish()
+
 class TestRawLogResponse(BaseHandler):
     @tornado.web.asynchronous
     def get(self):
@@ -207,7 +228,6 @@ class GPUState(BaseHandler):
         self.finish()
 
 if __name__ == '__main__':
-if __name__ == '__main__':
     tornado.options.parse_command_line()
     
     settings = {
@@ -216,21 +236,22 @@ if __name__ == '__main__':
         "login_url"     : r"/sign_in"
     }
     app = tornado.web.Application(handlers = [
-        (r'/index',        TestIndex),            \
-        (r'/index_fake',   TestIndex_fake),       \
-        (r'/request',      TestRequest),          \
-        (r'/status',       TestStatus),           \
-        (r"/result",       TestResult),           \
-        (r"/rawlog",       TestRawLogResponse),   \
-        (r"/rawlogbuffer", TestRawLogResponse),   \
-        (r"/accountRes",   AccountResponse),      \
-        (r"/signout",      TestSignOut),          \
-        (r"/requeststate", RequestState),         \
-        (r"/gpustate",     GPUState),             \
-        (r"/history",      TestHistory),          \
-        (r"/detail",       TestDetail),           \
-        (r'/sign_in',      TestSignIn),           \
-        (r'/sign_up',      TestSignUp),           \
+        (r'/index',        TestIndex),              \
+        (r'/index_fake',   TestIndex_fake),         \
+        (r'/request',      TestRequest),            \
+        (r'/status',       TestStatus),             \
+        (r"/result",       TestResult),             \
+        (r"/rawlog",       TestRawLogResponse),     \
+        (r"/rawlogbuffer", TestRawLogResponse),     \
+        (r"/accountRes",   AccountResponse),        \
+        (r"/signout",      TestSignOut),            \
+        (r"/requeststate", RequestState),           \
+        (r"/gpustate",     GPUState),               \
+        (r"/history",      TestHistory),            \
+        (r"/detail",       TestDetail),             \
+        (r'/sign_in',      TestSignIn),             \
+        (r'/sign_up',      TestSignUp),             \
+        (r'/download',     ResultReportDownloader), \
         (r'/css/(.*)',     tornado.web.StaticFileHandler, {'path': 'template/css'}), \
         (r'/js/(.*)',      tornado.web.StaticFileHandler, {'path': 'template/js'}), \
         (r'/log/(.*)',     tornado.web.StaticFileHandler, {'path': './log'})

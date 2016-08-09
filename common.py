@@ -44,3 +44,58 @@ class RequestObject(object):
         self.batch_size     = batch_size
         self.iteration      = iteration
         self.request_time   = request_time
+
+class DataMediator():
+
+    def __init__(self, header):
+        self.header = header
+        self.dataList = []
+
+    def append(self, row):
+        self.dataList.append(row)
+
+    def __len__(self):
+        return len(self.dataList)
+
+    def pop(self):
+        return self.dataList.pop()
+
+    def to_data_frame(self):
+        result = {}
+        for index, entry in enumerate(self.header):
+            result[entry] = [] 
+        for item in self.dataList:
+            for index, entry in enumerate(self.header):
+                result[entry].append(item[index]) 
+        return result
+            
+    def to_result_objects(self):
+        result = []
+        for item in self.dataList:
+            result.append(ResultObject(item[self.header.index("REQUEST_ID")],    \
+                                       item[self.header.index("DOCKER_ID")],     \
+                                       item[self.header.index("GPU_MODEL")],     \
+                                       item[self.header.index("MAIL_ADDRESS")],  \
+                                       item[self.header.index("FRAMEWORK")],     \
+                                       item[self.header.index("TOPOLOGY")],      \
+                                       item[self.header.index("BATCH_SIZE")],    \
+                                       item[self.header.index("SOURCE")],        \
+                                       item[self.header.index("ITERATION")],     \
+                                       item[self.header.index("SCORE")],         \
+                                       item[self.header.index("IMAGES_PRE_SEC")])) 
+        return result
+
+    def to_request_objects(self):
+        result = []
+        for item in self.dataList:
+            result.append(RequestObject(item[self.header.index("REQUEST_ID")],  \
+                                        item[self.header.index("DOCKER_ID")],   \
+                                        item[self.header.index("GPU_MODEL")],   \
+                                        item[self.header.index("MAIL_ADDRESS")],\
+                                        item[self.header.index("FRAMEWORK")],   \
+                                        item[self.header.index("TOPOLOGY")],    \
+                                        item[self.header.index("BATCH_SIZE")],  \
+                                        item[self.header.index("ITERATION")],   \
+                                        item[self.header.index("REQUEST_TIME")]))
+        
+        return result

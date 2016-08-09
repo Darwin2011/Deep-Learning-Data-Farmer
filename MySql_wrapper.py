@@ -239,12 +239,11 @@ class Mysql_wrapper():
             cursor.close()
 
     def get_request_reports(self, start_index, count):
-        result = []
+        header = ["REQUEST_ID", "DOCKER_ID", "GPU_MODEL", "MAIL_ADDRESS", "FRAMEWORK", "TOPOLOGY", "BATCH_SIZE", "ITERATION", "REQUEST_TIME"]
+        result = DataMediator(header)
         cursor = self.connection.cursor()
         try:
-            seach_image = "SELECT REQUEST_ID, DOCKER_ID, GPU_MODEL, MAIL_ADDRESS, FRAMEWORK, " \
-                          "TOPOLOGY, BATCH_SIZE, ITERATION, REQUEST_TIME " \
-                          "FROM request_reports order by REQUEST_TIME desc limit %d, %d;" % (start_index, count)
+            seach_image = "SELECT %s FROM request_reports order by REQUEST_TIME desc limit %d, %d;" % (", ".join(header), start_index, count)
             farmer_log.debug(seach_image)
             cursor.execute(seach_image)
             self.connection.commit()
@@ -252,16 +251,15 @@ class Mysql_wrapper():
             farmer_log.debug("The result row count is %d" % rowcount)
             for i in range(rowcount):
                 output = cursor.fetchone()
-                requestObj = RequestObject(output[0], \
-                                           output[1], \
-                                           output[2], \
-                                           output[3], \
-                                           output[4], \
-                                           output[5], \
-                                           output[6], \
-                                           output[7], \
-                                           output[8])
-                result.append(requestObj)
+                result.append((output[0], \
+                               output[1], \
+                               output[2], \
+                               output[3], \
+                               output[4], \
+                               output[5], \
+                               output[6], \
+                               output[7], \
+                               output[8]))
                 farmer_log.info(output)
         except Exception as e:
             farmer_log.error("get_request_reports:" + e.message)
@@ -271,7 +269,8 @@ class Mysql_wrapper():
         return result
 
     def get_result_by_request_id(self, request_id):
-        result = []
+        header = ("REQUEST_ID", "DOCKER_ID", "GPU_MODEL", "FRAMEWORK", "TOPOLOGY", "BATCH_SIZE", "SOURCE", "ITERATION", "SCORE", "IMAGES_PRE_SEC", "MAIL_ADDRESS")
+        result = DataMediator(header)
         cursor = self.connection.cursor()
         email = ""
         try:
@@ -286,17 +285,16 @@ class Mysql_wrapper():
                 farmer_log.error(cursor.fetchall())
 
             search_image = "SELECT \
-            REQUEST_ID, \
-            DOCKER_ID, \
-            GPU_MODEL, \
-            FRAMEWORK, \
-            TOPOLOGY, \
-            BATCH_SIZE, \
-            SOURCE, \
-            ITERATION, \
+            REQUEST_ID,\
+            DOCKER_ID,\
+            GPU_MODEL,\
+            FRAMEWORK,\
+            TOPOLOGY,\
+            BATCH_SIZE,\
+            SOURCE,\
+            ITERATION,\
             SCORE,\
-            IMAGES_PRE_SEC \
-            FROM result_reports WHERE REQUEST_ID = '%s';" % request_id
+            IMAGES_PRE_SEC FROM result_reports WHERE REQUEST_ID = '%s';" % request_id
             farmer_log.debug(search_image)
             cursor.execute(search_image)
             self.connection.commit()
@@ -306,18 +304,17 @@ class Mysql_wrapper():
             for i in range(rowcount):
                 output = cursor.fetchone()
                 farmer_log.info(output)
-                resultObj = ResultObject(output[0], \
-                                         output[1], \
-                                         output[2], \
-                                         email,
-                                         output[3], \
-                                         output[4], \
-                                         output[5], \
-                                         output[6], \
-                                         output[7], \
-                                         "%.2f" % output[8], \
-                                         "%.2f" % output[9])
-                result.append(resultObj)
+                result.append((output[0], \
+                              output[1], \
+                              output[2], \
+                              output[3], \
+                              output[4], \
+                              output[5], \
+                              output[6], \
+                              output[7], \
+                              "%.2f" % output[8], \
+                              "%.2f" % output[9], \
+                              email))
                 farmer_log.info(output)
         except Exception as e:
             farmer_log.error("get_result_by_request_id:" + e.message)

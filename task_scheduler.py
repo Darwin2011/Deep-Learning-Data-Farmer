@@ -142,6 +142,13 @@ class Task_Scheduler(object):
         gpu_device = request['gpu_device']
         return gpu_device.response_status_as_json(request)    
 
+    def make_download_file(self, request_id):
+        dataMediator = self.sql_wrapper.get_result_by_request_id(request_id)
+        dataFrame = pandas.DataFrame(dataMediator.to_data_frame())
+        filename = request_id + ".xlsx"
+        dataFrame.to_excel("./xlsx/" + filename)
+        return filename
+
 if __name__ == "__main__":
     scheduler = Task_Scheduler()
     scheduler.assign_request(sys.argv[1])
