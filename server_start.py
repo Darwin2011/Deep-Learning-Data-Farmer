@@ -142,7 +142,10 @@ class TestSignIn(BaseHandler):
     sign_in_html = "template/sign_in.html"
 
     def get(self):
-        self.render(self.sign_in_html)
+        if self.get_current_user():
+            self.redirect(r"/index")
+        else:
+            self.render(self.sign_in_html)
 
     def post(self):
         user     = self.get_argument('user')
@@ -162,7 +165,10 @@ class TestSignUp(BaseHandler):
     sign_up_html = 'template/sign_up.html'
 
     def get(self):
-        self.render(self.sign_up_html)
+        if self.get_current_user():
+            self.redirect(r"/index")
+        else:
+            self.render(self.sign_up_html)
     
     def post(self):
         email    = self.get_argument('email')
