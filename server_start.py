@@ -23,7 +23,7 @@ def md5(password):
     return md5Obj.hexdigest()
 
 from tornado.options import define, options
-define('port', default=8000, help='run on the given port', type=int)
+define('port', default=8001, help='run on the given port', type=int)
 
 scheduler = Task_Scheduler()
 
@@ -159,7 +159,7 @@ class TestSignIn(BaseHandler):
         if user_id != -1:
             self.set_secure_cookie("username", username)
             self.set_secure_cookie("user_id", "%d" % user_id)
-            self.redirect(self.get_argument("next",r"/index"))
+            self.redirect(self.get_argument("next",r"/dashboard"))
         else:
             self.write("The user name or password doesn't correct.")
 
@@ -226,7 +226,9 @@ class AccountResponse(BaseHandler):
     @tornado.web.asynchronous
     def get(self):
         user = self.get_argument("user")
-        self.write(str(scheduler.sql_wrapper.exists_user(user)))
+        isExist = scheduler.sql_wrapper.exists_user(user)
+        farmer_log.info("The user[%s] is exist[%r]" % (user, isExist))
+        self.write(str(isExist)) 
         self.finish()
 
 class GPUState(BaseHandler):
