@@ -200,6 +200,7 @@ class TestSignOut(BaseHandler):
         self.redirect("/sign_in")
 
 class ResultReportDownloader(BaseHandler):
+    @tornado.web.authenticated
     @tornado.web.asynchronous
     def get(self):
         request_id = self.get_argument("request")
@@ -216,12 +217,13 @@ class ResultReportDownloader(BaseHandler):
         self.finish()
 
 class HPCBinariesDownloader(BaseHandler):
+    @tornado.web.authenticated
     @tornado.web.asynchronous
     def get(self):
-        binary_name = self.get_argument(self, "binary")
+        binary_name = self.get_argument("binary")
         self.set_header("Content-Type", "application/octet-stream")
         self.set_header("Content-Disposition", "attachment; filename=" + binary_name)
-        with open("./HPC_Binaries/" + binary_name, 'rb') as fileObj:
+        with open("./HPC_binaries/" + binary_name, 'rb') as fileObj:
             while True:
                 data = fileObj.read(4096)
                 if not data:
@@ -284,7 +286,8 @@ if __name__ == '__main__':
         (r"/gpustate",     GPUState),               \
         (r"/history",      TestHistory),            \
         (r"/detail",       TestDetail),             \
-
+        (r"/binaries",     TestHPCBinaries),        \
+        (r"/hpc_download", HPCBinariesDownloader),  \
         (r'/download',     ResultReportDownloader), \
         (r'/css/(.*)',     tornado.web.StaticFileHandler, {'path': 'template/css'}), \
         (r'/js/(.*)',      tornado.web.StaticFileHandler, {'path': 'template/js'}), \

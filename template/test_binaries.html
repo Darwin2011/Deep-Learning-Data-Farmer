@@ -32,7 +32,9 @@ License URL: http://creativecommons.org/licenses/by/3.0/
                         </tr>
                         {% for item in fileList %}
                         <tr>
-                            <td>{{ item.binary_name }}</td>
+                            <td>
+                                <a href="/hpc_download?binary={{ item.binary_name }}">
+                                {{ item.binary_name }}</a></td>
                             <td>{{ item.size        }}</td>
                             <td>{{ item.date        }}</td>
                         </tr>
