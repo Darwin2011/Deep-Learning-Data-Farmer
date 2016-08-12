@@ -31,18 +31,21 @@ class BaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
         return self.get_secure_cookie("username")
 
-class TestIndex(BaseHandler):
+class TestDashboard(BaseHandler):
     index_html = 'template/dashboard.html'
 
     @tornado.web.authenticated
     def get(self):
         self.render(self.__class__.index_html)
 
-class TestIndex_fake(BaseHandler):
-    index_html = 'template/index_fake.html'
+class TestIndex(BaseHandler):
+    index_html = 'template/index.html'
 
     def get(self):
-        self.render(self.index_html)
+        if self.get_current_user():
+            self.redirect(r"/dashboard")
+        else:
+            self.render(self.index_html)
 
 class TestRequest(BaseHandler):
     test_request_html = 'template/test_request.html'
@@ -143,7 +146,7 @@ class TestSignIn(BaseHandler):
 
     def get(self):
         if self.get_current_user():
-            self.redirect(r"/index")
+            self.redirect(r"/dashboard")
         else:
             self.render(self.sign_in_html)
 
@@ -166,7 +169,7 @@ class TestSignUp(BaseHandler):
 
     def get(self):
         if self.get_current_user():
-            self.redirect(r"/index")
+            self.redirect(r"/dashboard")
         else:
             self.render(self.sign_up_html)
     
@@ -242,8 +245,11 @@ if __name__ == '__main__':
         "login_url"     : r"/sign_in"
     }
     app = tornado.web.Application(handlers = [
-        (r'/index',        TestIndex),              \
-        (r'/index_fake',   TestIndex_fake),         \
+        (r'/',             TestIndex),              \
+        (r'/sign_in',      TestSignIn),             \
+        (r'/sign_up',      TestSignUp),             \
+
+        (r'/dashboard',    TestDashboard),          \
         (r'/request',      TestRequest),            \
         (r'/status',       TestStatus),             \
         (r"/result",       TestResult),             \
@@ -255,8 +261,7 @@ if __name__ == '__main__':
         (r"/gpustate",     GPUState),               \
         (r"/history",      TestHistory),            \
         (r"/detail",       TestDetail),             \
-        (r'/sign_in',      TestSignIn),             \
-        (r'/sign_up',      TestSignUp),             \
+
         (r'/download',     ResultReportDownloader), \
         (r'/css/(.*)',     tornado.web.StaticFileHandler, {'path': 'template/css'}), \
         (r'/js/(.*)',      tornado.web.StaticFileHandler, {'path': 'template/js'}), \

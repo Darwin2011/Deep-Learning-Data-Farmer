@@ -7,16 +7,11 @@ from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 
 mail_from = "zongruix.zhang@intel.com"
-mail_to = "zzr.631168309@gmail.com"
 mail_to = "zongruix.zhang@intel.com"
 
-msg = MIMEMultipart("")
 
 def sendMail(sender, receiver, subject):
     smtpserver = "smtp.intel.com"
-    username = "zongruix.zhang@intel.com"
-    password = "Intel,123456"
-    msg = MIMEMultipart("alternative")
     msg = MIMEMultipart("related")
 
     msg["Subject"] = Header(subject, "utf-8")
@@ -45,7 +40,6 @@ def sendMail(sender, receiver, subject):
     smtp = smtplib.SMTP()
     try:
         smtp.connect(smtpserver)
-#       smtp.login(username, password)
         smtp.sendmail(sender, receiver, msg.as_string())
     except Exception as e:
         print e        
