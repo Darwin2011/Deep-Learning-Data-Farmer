@@ -146,7 +146,7 @@ class Task_Scheduler(object):
         dataMediator = self.sql_wrapper.get_result_by_request_id(request_id)
         dataFrame = pandas.DataFrame(dataMediator.to_data_frame())
         filename = request_id + ".xlsx"
-        dataFrame.to_excel("./xlsx/" + filename)
+        dataFrame.to_excel("./xlsx/" + filename, index = False)
         return filename
 
 if __name__ == "__main__":

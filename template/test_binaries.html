@@ -30,11 +30,11 @@ License URL: http://creativecommons.org/licenses/by/3.0/
                             <td><h4>Length</h4></td>
                             <td><h4>Post Date</h4></td>
                         </tr>
-                        {% for item in binaries %}
+                        {% for item in fileList %}
                         <tr>
-                            <td>{{ item.name      }}</td>
-                            <td>{{ item.length    }}</td>
-                            <td>{{ item.post_date }}</td>
+                            <td>{{ item.binary_name }}</td>
+                            <td>{{ item.size        }}</td>
+                            <td>{{ item.date        }}</td>
                         </tr>
                         {% end %}
                         <tr>

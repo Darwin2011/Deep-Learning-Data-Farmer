@@ -13,7 +13,7 @@ from task_scheduler import *
 import farmer_log
 import hashlib
 import base64, uuid
-
+from resource_manager import Resource_Manager
 def get_cookie_secret():
     return base64.b64encode(uuid.uuid4().bytes + uuid.uuid4().bytes)
 
@@ -26,6 +26,7 @@ from tornado.options import define, options
 define('port', default=8001, help='run on the given port', type=int)
 
 scheduler = Task_Scheduler()
+resMgr    = Resource_Manager()
 
 class BaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
@@ -141,6 +142,15 @@ class TestDetail(BaseHandler):
         results    = scheduler.sql_wrapper.get_result_by_request_id(request_id).to_result_objects()
         self.render(self.__class__.test_detail_html, results = results)
 
+class TestHPCBinaries(BaseHandler):
+    test_binaries_html = 'template/test_binaries.html'
+
+    @tornado.web.authenticated
+    def get(self):
+        # fake to get the request id
+        fileList   = resMgr.getBinariesList()
+        self.render(self.test_binaries_html, fileList = fileList)
+
 class TestSignIn(BaseHandler):
     sign_in_html = "template/sign_in.html"
 
@@ -192,15 +202,26 @@ class TestSignOut(BaseHandler):
 class ResultReportDownloader(BaseHandler):
     @tornado.web.asynchronous
     def get(self):
-        if not os.path.exists("./xlsx"):
-            os.mkdir("./xlsx")
-            farmer_log.info("Make xlsx directory.")
         request_id = self.get_argument("request")
         download_file = scheduler.make_download_file(request_id)
         self.set_header("Content-Type", "application/octet-stream")
         self.set_header("Content-Disposition", "attachment; filename=" + download_file)
         with open("./xlsx/" + download_file, 'rb') as fileObj:
             farmer_log.info("open the request(%s) xlsx." % request_id)
+            while True:
+                data = fileObj.read(4096)
+                if not data:
+                    break
+                self.write(data)
+        self.finish()
+
+class HPCBinariesDownloader(BaseHandler):
+    @tornado.web.asynchronous
+    def get(self):
+        binary_name = self.get_argument(self, "binary")
+        self.set_header("Content-Type", "application/octet-stream")
+        self.set_header("Content-Disposition", "attachment; filename=" + binary_name)
+        with open("./HPC_Binaries/" + binary_name, 'rb') as fileObj:
             while True:
                 data = fileObj.read(4096)
                 if not data:
