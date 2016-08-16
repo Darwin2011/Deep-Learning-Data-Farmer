@@ -11,6 +11,11 @@ class requests(object):
         self.iterations = iterations
         self.batch_size = batch_size
 
+class TaskInfo():
+      def __init__(self, task, state):
+          self.task = task
+          self.state = state
+
 class BinaryInfo(object):
 
     def __init__(self, binary_name, size, date):

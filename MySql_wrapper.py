@@ -123,6 +123,7 @@ class Mysql_wrapper():
         except Exception as e:
             self.connection.rollback()
             farmer_log.error("exists_account error [%s]" % e.message)
+        return result
 
     def account_login(self, user, password):
         result = (-1, "")

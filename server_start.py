@@ -7,6 +7,7 @@ import tornado.web
 import dicttoxml
 import threading
 import os
+import json
 from xml.dom.minidom import parseString
 from gpu_control import *
 from task_scheduler import *
@@ -14,6 +15,8 @@ import farmer_log
 import hashlib
 import base64, uuid
 from resource_manager import Resource_Manager
+from task_manager import Task_Manager
+
 def get_cookie_secret():
     return base64.b64encode(uuid.uuid4().bytes + uuid.uuid4().bytes)
 
@@ -23,10 +26,12 @@ def md5(password):
     return md5Obj.hexdigest()
 
 from tornado.options import define, options
-define('port', default=8001, help='run on the given port', type=int)
+define('port', default=8000, help='run on the given port', type=int)
 
 scheduler = Task_Scheduler()
 resMgr    = Resource_Manager()
+taskMgr   = Task_Manager()
+taskMgr.start()
 
 class BaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
@@ -174,9 +179,26 @@ class TestSignIn(BaseHandler):
             self.write("The user name or password doesn't correct.")
 
 
+class TestTasks(BaseHandler):
+    tasks_html = "template/test_tasks.html"
+    
+    @tornado.web.authenticated
+    def get(self):
+        self.render(self.tasks_html, tasks = taskMgr.getTasksInfo())
+        
+class TasksService(BaseHandler):
+
+    @tornado.web.authenticated
+    @tornado.web.asynchronous 
+    def get(self):
+        tasklist = taskMgr.getTasksInfo()
+        html_table_content = "".join(["<tr><td>%s</td><td>%s</td></tr>" % (task.task, task.state) for task in tasklist])
+        html_table = "<table>" + "<tr><td><h4>task</h4></td><td><h4>state</h4></td></tr>" + html_table_content + "</table>"
+        self.write(html_table)
+        self.finish()
+
 class TestSignUp(BaseHandler):
     sign_up_html = 'template/sign_up.html'
-
     def get(self):
         if self.get_current_user():
             self.redirect(r"/dashboard")
@@ -261,6 +283,21 @@ class GPUState(BaseHandler):
         self.write(str(scheduler.response_gpu_state_request(request_id)))
         self.finish()
 
+counter = 0
+class Test(BaseHandler):
+    test_html = "template/test.html"
+
+    def get(self):
+        return self.render(self.test_html)
+
+    def post(self):
+        global counter
+        counter += 1
+        farmer_log.info("test post")
+        taskMgr.test(counter)
+        taskMgr.show()
+        return self.render(self.test_html)
+
 if __name__ == '__main__':
     tornado.options.parse_command_line()
     
@@ -273,7 +310,9 @@ if __name__ == '__main__':
         (r'/',             TestIndex),              \
         (r'/sign_in',      TestSignIn),             \
         (r'/sign_up',      TestSignUp),             \
-
+        (r'/test',         Test),                   \
+        (r'/tasksInfo',    TasksService),           \
+        (r'/tasks',        TestTasks),              \
         (r'/dashboard',    TestDashboard),          \
         (r'/request',      TestRequest),            \
         (r'/status',       TestStatus),             \

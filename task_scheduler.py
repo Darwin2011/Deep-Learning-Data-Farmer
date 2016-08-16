@@ -107,7 +107,8 @@ class Task_Scheduler(object):
             # TODO
             # docker control inert docker_image_info into database
             index = self.docker_control.get_image_index(request['cuda_string'], request['cudnn_string'], request['caffe'], request['tensorflow'])
-        gpuid = request['gpu_id'] 
+        gpuid = request['gpu_id']
+        gpuid = 1
         request_id = request['request_id']
         image = self.docker_control.get_image(index)
         container = get_random_container()

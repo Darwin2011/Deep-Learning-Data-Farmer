@@ -10,7 +10,7 @@ class Resource_Manager():
         dirList = ["xml" , "xlsx", "HPC_binaries"]
         for directory in dirList:
             if not os.path.exists(directory):
-                os.makedir(directory)
+                os.makedirs(directory)
 
     def getBinariesList(self):
         results = []
