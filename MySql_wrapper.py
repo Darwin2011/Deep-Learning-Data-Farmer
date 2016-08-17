@@ -7,11 +7,23 @@ from common import *
 filterwarnings("ignore", category = MySQLdb.Warning)
 
 class Mysql_wrapper():
-    MAX_ITEMS_PRE_PAGE = 4 
 
     def __init__(self, host, user, passwd, dataset):
+        self.host       = host
+        self.user       = user
+        self.passwd     = passwd
+        self.dataset    = dataset
         self.connection = \
             MySQLdb.Connect(host="%s" % (host,), user="%s" % (user,), passwd="%s" % (passwd,), db="%s" % (dataset,))
+
+    def cursor(self):
+        try:
+            self.connection.ping()
+        except Exception, e:
+            self.connection = MySQLdb.Connect(self.host, self.user, self.passwd, self.dataset)
+            farmer_log.info("The connection is too long, reconnect.")
+        return self.connection.cursor()
+
 
     def __del__(self):
         self.connection.close()
@@ -24,7 +36,7 @@ class Mysql_wrapper():
 
         Returns:
         """
-        cursor = self.connection.cursor()
+        cursor = self.cursor()
 
         create_accounts_table_cmd = """CREATE TABLE IF NOT EXISTS accounts
         (id             INT             NOT NULL AUTO_INCREMENT,
@@ -88,7 +100,7 @@ class Mysql_wrapper():
         cursor.close()
 
     def create_account(self, user, password, mail):
-        cursor = self.connection.cursor()
+        cursor = self.cursor()
         try:
             inserted_sql = '''INSERT INTO accounts
                   (USER,   PASSWORD,       MAIL, HAVE_LOGINED)
@@ -107,7 +119,7 @@ class Mysql_wrapper():
 
     def exists_user(self, user):
         result = False
-        cursor = self.connection.cursor()
+        cursor = self.cursor()
         try:
             select_sql = """select id from accounts where
             USER = "%s";""" % user
@@ -127,7 +139,7 @@ class Mysql_wrapper():
 
     def account_login(self, user, password):
         result = (-1, "")
-        cursor = self.connection.cursor()
+        cursor = self.cursor()
         try:
             login_sql = """select id, USER from accounts
             where USER = "%s" AND PASSWORD = "%s";""" % (user, password)
@@ -143,7 +155,7 @@ class Mysql_wrapper():
         return result
         
     def account_logout(self, user, password):
-        cursor = self.connection.cursor()
+        cursor = self.cursor()
         try:
             login_sql = """UPDATE accounts
             SET HAVE_LOGINED = 0
@@ -163,7 +175,7 @@ class Mysql_wrapper():
 
     def has_image_in_db_by_rep_tag(self, repository, tag):
         result = False
-        cursor = self.connection.cursor()
+        cursor = self.cursor()
         try:
             seach_image = "SELECT repository, tag FROM docker_images WHERE REPOSITORY = '%s' AND TAG = '%s';" % (repository, tag)
             farmer_log.debug(seach_image)
@@ -181,7 +193,7 @@ class Mysql_wrapper():
         return result
 
     def inert_item_in_docker_images_table(self, repository, tag, cuda_version, cuda_version_str, cudnn_version, cudnn_version_str, have_tensorflow, have_caffe):
-        cursor = self.connection.cursor()
+        cursor = self.cursor()
         try:
             inserted_sql = 'INSERT INTO docker_images (REPOSITORY, TAG,\
              CUDA_VERSION, CUDA_VERSION_STRING, CUDNN_VERSION,\
@@ -203,7 +215,7 @@ class Mysql_wrapper():
     def inert_item_in_request_reports(self, resquest_id, docker_id, gpu_model, \
                                       mail_addr, framework, topology, \
                                       batch_size, iteration):
-        cursor = self.connection.cursor()
+        cursor = self.cursor()
         try:
             inserted_sql = 'INSERT INTO request_reports\
             (REQUEST_ID,   DOCKER_ID,  GPU_MODEL,  MAIL_ADDRESS,  FRAMEWORK,  TOPOLOGY,  BATCH_SIZE,   ITERATION) \
@@ -223,7 +235,7 @@ class Mysql_wrapper():
     def inert_item_in_result_reports(self, resquest_id, docker_id, gpu_model, \
                                      framework, topology, batch_size, source, \
                                      iteration, score, images_pre_sec):
-        cursor = self.connection.cursor()
+        cursor = self.cursor()
         try:
             inserted_sql = 'INSERT INTO result_reports\
             (REQUEST_ID,   DOCKER_ID,  GPU_MODEL,  FRAMEWORK,  TOPOLOGY,  BATCH_SIZE,  SOURCE,   ITERATION,  SCORE,    IMAGES_PRE_SEC) \
@@ -242,7 +254,7 @@ class Mysql_wrapper():
     def get_request_reports(self, start_index, count):
         header = ["REQUEST_ID", "DOCKER_ID", "GPU_MODEL", "MAIL_ADDRESS", "FRAMEWORK", "TOPOLOGY", "BATCH_SIZE", "ITERATION", "REQUEST_TIME"]
         result = DataMediator(header)
-        cursor = self.connection.cursor()
+        cursor = self.cursor()
         try:
             seach_image = "SELECT %s FROM request_reports order by REQUEST_TIME desc limit %d, %d;" % (", ".join(header), start_index, count)
             farmer_log.debug(seach_image)
@@ -272,7 +284,7 @@ class Mysql_wrapper():
     def get_result_by_request_id(self, request_id):
         header = ("REQUEST_ID", "DOCKER_ID", "GPU_MODEL", "FRAMEWORK", "TOPOLOGY", "BATCH_SIZE", "SOURCE", "ITERATION", "SCORE", "IMAGES_PRE_SEC", "MAIL_ADDRESS")
         result = DataMediator(header)
-        cursor = self.connection.cursor()
+        cursor = self.cursor()
         email = ""
         try:
             search_email = "SELECT MAIL_ADDRESS FROM request_reports WHERE REQUEST_ID = '%s';" % (request_id)
@@ -326,7 +338,7 @@ class Mysql_wrapper():
 
     def has_image_in_db_by_cuda_cuddn(self, cuda_string, cuddn_string):
         result = False
-        cursor = self.connection.cursor()
+        cursor = self.cursor()
         try:
             seach_image = "SELECT repository, tag FROM docker_images WHERE CUDA_VERSION_STRING = '%s' AND CUDNN_VERSION_STRING = '%s';" % (cuda_string, cuddn_string)
             farmer_log.debug(seach_image)
@@ -345,7 +357,7 @@ class Mysql_wrapper():
 
     def get_detailed_info_from_db(self, repository, tag):
         row = None
-        cursor = self.connection.cursor()
+        cursor = self.cursor()
         try:
             select_sql = "SELECT * FROM docker_images WHERE REPOSITORY = '%s' AND TAG = '%s';" % (repository, tag)
             farmer_log.info(select_sql)
