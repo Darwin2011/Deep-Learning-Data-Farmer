@@ -117,6 +117,26 @@ class Mysql_wrapper():
         finally:
             cursor.close()
 
+    def exists_mail(self, mail):
+        result = False
+        cursor = self.cursor()
+        try:
+            select_sql = """select id from accounts where
+            MAIL = "%s";""" % mail
+            farmer_log.info(select_sql)
+            cursor.execute(select_sql)
+            self.connection.commit()
+            if 1 == cursor.rowcount:
+                result = True
+            elif 0 == cursor.rowcount:
+                result = False
+            else:
+                farmer_log.error("The account have exists more than one.user[%s]" % user)
+        except Exception as e:
+            self.connection.rollback()
+            farmer_log.error("exists_account error [%s]" % e.message)
+        return result
+
     def exists_user(self, user):
         result = False
         cursor = self.cursor()
@@ -137,12 +157,12 @@ class Mysql_wrapper():
             farmer_log.error("exists_account error [%s]" % e.message)
         return result
 
-    def account_login(self, user, password):
+    def account_login(self, mail, password):
         result = (-1, "")
         cursor = self.cursor()
         try:
-            login_sql = """select id, USER from accounts
-            where USER = "%s" AND PASSWORD = "%s";""" % (user, password)
+            login_sql = """select id, MAIL from accounts
+            where MAIL = "%s" AND PASSWORD = "%s";""" % (mail, password)
             farmer_log.info(login_sql)
             rowcount = cursor.execute(login_sql)
             self.connection.commit()
@@ -154,12 +174,12 @@ class Mysql_wrapper():
             farmer_log.error("account_login error [%s]" % e.message)
         return result
         
-    def account_logout(self, user, password):
+    def account_logout(self, mail, password):
         cursor = self.cursor()
         try:
             login_sql = """UPDATE accounts
             SET HAVE_LOGINED = 0
-            where USER = "%s" AND PASSWORD = "%s";""" % (user, password)
+            where MAIL = "%s" AND PASSWORD = "%s";""" % (mail, password)
             farmer_log.info(login_sql)
             cursor.execute(login_sql)
             self.connection.commit()

@@ -41,18 +41,18 @@ user_request.onreadystatechange = function(){
         res = user_request.responseText;
         if (res == 'True')
         {
-           document.getElementById("info").innerHTML = "The user name have existed. Please type other user name";
+           document.getElementById("info").innerHTML = "The email address have existed. Please type other user name";
         }
         else
         {
-           document.getElementById("info").innerHTML = "The user name corrects.";
+           document.getElementById("info").innerHTML = "The email address corrects.";
         }  
     }
 }
 
-function validate_user(id){
-    user_name = document.getElementById(id).value;
-    user_request.open("GET", "/accountRes?user=" + user_name,  true);
+function validate_mail(id){
+    mail = document.getElementById(id).value;
+    user_request.open("GET", "/accountRes?mail=" + mail,  true);
     user_request.send();
 }
 </script>
@@ -76,11 +76,11 @@ function validate_user(id){
                                     </div>
 									<div style="margin: 1em;">
                                         <label style="display: block"><h4>Mail :</h4></label>
-									    <input name="email"     type="text"     class="pretty-input" />
+									    <input id="mail" name="email"     type="text"     class="pretty-input" onchange="validate_mail(this.id)" />
                                     </div>
                                     <div style="margin: 1em;">
                                         <label style="display: block"><h4>User :</h4></label>
-									    <input id="user_name" name="user" type="text" class="pretty-input" onchange="validate_user(this.id)"/>
+									    <input id="user_name" name="user" type="text" class="pretty-input"/>
                                     </div>
                                     <div style="margin: 1em;">
                                         <label style="display: block"><h4>Password :</h4></label>

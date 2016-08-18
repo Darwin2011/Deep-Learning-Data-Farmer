@@ -25,6 +25,13 @@ def md5(password):
     md5Obj.update(password)
     return md5Obj.hexdigest()
 
+def version():
+    with os.popen("git log -1") as verObj:
+        for line in verObj:
+            version = line[7:-2]
+            return version
+    
+
 from tornado.options import define, options
 define('port', default=8000, help='run on the given port', type=int)
 
@@ -35,7 +42,7 @@ taskMgr.start()
 
 class BaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
-        return self.get_secure_cookie("username")
+        return self.get_secure_cookie("mail")
 
 class TestDashboard(BaseHandler):
     index_html = 'template/dashboard.html'
@@ -51,7 +58,7 @@ class TestIndex(BaseHandler):
         if self.get_current_user():
             self.redirect(r"/dashboard")
         else:
-            self.render(self.index_html)
+            self.render(self.index_html, version = version())
 
 class TestRequest(BaseHandler):
     test_request_html = 'template/test_request.html'
@@ -166,13 +173,13 @@ class TestSignIn(BaseHandler):
             self.render(self.sign_in_html)
 
     def post(self):
-        user     = self.get_argument('user')
+        mail     = self.get_argument('mail')
         password = self.get_argument('password')
-        farmer_log.info("Sign up info: user[%s] password[%s]" % (user, password))
-        user_id, username  = scheduler.exists_account(user, password)
-        farmer_log.info("user_id[%d] username[%s]" % (user_id, username))
+        farmer_log.info("Sign up info: mail[%s] password[%s]" % (mail, password))
+        user_id, mail_addr  = scheduler.exists_account(mail, password)
+        farmer_log.info("user_id[%d] mail[%s]" % (user_id, mail_addr))
         if user_id != -1:
-            self.set_secure_cookie("username", username)
+            self.set_secure_cookie("mail", mail_addr)
             self.set_secure_cookie("user_id", "%d" % user_id)
             self.redirect(self.get_argument("next",r"/dashboard"))
         else:
@@ -218,7 +225,8 @@ class TestSignUp(BaseHandler):
 
 class TestSignOut(BaseHandler):
     def get(self):
-        self.clear_cookie("username")
+        self.clear_cookie("mail")
+        self.clear_cookie("user_id")
         self.redirect("/sign_in")
 
 class ResultReportDownloader(BaseHandler):
@@ -270,9 +278,9 @@ class RequestState(BaseHandler):
 class AccountResponse(BaseHandler):
     @tornado.web.asynchronous
     def get(self):
-        user = self.get_argument("user")
-        isExist = scheduler.sql_wrapper.exists_user(user)
-        farmer_log.info("The user[%s] is exist[%r]" % (user, isExist))
+        mail = self.get_argument("mail")
+        isExist = scheduler.sql_wrapper.exists_mail(mail)
+        farmer_log.info("The mail[%s] is exist[%r]" % (mail, isExist))
         self.write(str(isExist)) 
         self.finish()
 
