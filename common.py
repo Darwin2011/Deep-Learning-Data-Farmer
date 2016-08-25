@@ -1,5 +1,6 @@
 #!usr/bin/env python
 
+import os
 
 class requests(object):
 
@@ -40,7 +41,6 @@ class ResultObject(object):
         self.score          = score
         self.images_pre_sec = images_pre_sec
 
-
 class RequestObject(object):
 
     def __init__(self, request_id, docker_id, gpu_model,\
@@ -55,6 +55,13 @@ class RequestObject(object):
         self.batch_size     = batch_size
         self.iteration      = iteration
         self.request_time   = request_time
+
+    def exist_log(self):
+        return os.path.isfile("log/%s.zip" % self.request_id)        
+
+    @property
+    def profile_file(self):
+        return "%s.zip" % self.request_id
 
 class DataMediator():
 

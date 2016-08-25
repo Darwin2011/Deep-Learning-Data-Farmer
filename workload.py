@@ -64,7 +64,7 @@ class Caffe_Workload(Workload):
         os.mkdir(tmp_dir)
         command = 'docker cp %s:/tmp/log %s' % (self.container, tmp_dir)
         os.popen(command)
-        command = 'tar zcvf log/%s.tar.gz %s' % (self.request_id, tmp_dir)
+        command = 'zip -r log/%s.zip %s' % (self.request_id, tmp_dir)
         os.popen(command)
                 
     def build_in_docker(self):

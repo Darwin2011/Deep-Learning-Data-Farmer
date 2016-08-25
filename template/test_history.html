@@ -42,13 +42,14 @@ License URL: http://creativecommons.org/licenses/by/3.0/
                             <td><h4>Batch size</h4></td>
                             <td><h4>Iteration</h4></td>
                             <td><h4>Date</h4></td>
-                            <td><h4>Download</h4></td>
+                            <td><h4>Report</h4></td>
+                            <td><h4>Profile</h4></td>
                     </tr>
-                        {% for request_item in request_reports %}
+                    {% for request_item in request_reports %}
                     <tr>
                         <td>
                             <a href="/detail?request={{ request_item.request_id }}"/>
-                                {{ request_item.request_id   }}</a></td>
+                                {{ '_'.join(request_item.request_id.split('_')[1:])   }}</a></td>
                         <td>{{ request_item.gpu_model    }}</td>
                         <td>{{ request_item.mail_addr    }}</td>
                         <td>{{ request_item.framework    }}</td>
@@ -57,8 +58,13 @@ License URL: http://creativecommons.org/licenses/by/3.0/
                         <td>{{ request_item.iteration    }}</td>
                         <td>{{ request_item.request_time }}</td>
                         <td><a href="/download?request={{ request_item.request_id }}"/>download</a></td>
-                    </tr>
+                        {% if request_item.exist_log() %}
+                        <td><a href="/profile_download?request={{ request_item.request_id }}">download</a></td>
+                        {% else %}
+                        <td>None</td>
                         {% end %}
+                    </tr>
+                    {% end %}
                 </table>
 			</div>
         </div>

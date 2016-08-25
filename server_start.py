@@ -33,7 +33,7 @@ def version():
     
 
 from tornado.options import define, options
-define('port', default=8000, help='run on the given port', type=int)
+define('port', default=8001, help='run on the given port', type=int)
 
 scheduler = Task_Scheduler()
 resMgr    = Resource_Manager()
@@ -246,6 +246,24 @@ class ResultReportDownloader(BaseHandler):
                 self.write(data)
         self.finish()
 
+class ProfileDownloader(BaseHandler):
+    @tornado.web.authenticated
+    @tornado.web.asynchronous
+    def get(self):
+        request_id = self.get_argument("request")
+        download_file = "%s.zip" % request_id
+        self.set_header("Content-Type", "application/octet-stream")
+        self.set_header("Content-Disposition", "attachment; filename=" + download_file)
+        with open("./log/" + download_file, 'rb') as fileObj:
+            farmer_log.info("open profile request(%s) file." % request_id)
+            while True:
+                data = fileObj.read(4096)
+                if not data:
+                    break
+                self.write(data)
+        self.finish()
+
+
 class HPCBinariesDownloader(BaseHandler):
     @tornado.web.authenticated
     @tornado.web.asynchronous
@@ -335,6 +353,7 @@ if __name__ == '__main__':
         (r"/detail",       TestDetail),             \
         (r"/binaries",     TestHPCBinaries),        \
         (r"/hpc_download", HPCBinariesDownloader),  \
+        (r"/profile_download", ProfileDownloader),  \
         (r'/download',     ResultReportDownloader), \
         (r'/css/(.*)',     tornado.web.StaticFileHandler, {'path': 'template/css'}), \
         (r'/js/(.*)',      tornado.web.StaticFileHandler, {'path': 'template/js'}), \
