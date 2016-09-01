@@ -5,6 +5,8 @@ from email.Header import Header
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
+import farmer_log
+import sys
 
 mail_from = "zongruix.zhang@intel.com"
 mail_to = "zongruix.zhang@intel.com"
@@ -46,6 +48,35 @@ def sendMail(sender, receiver, subject):
     finally:
         smtp.quit()
 
+def send_security_code(sender, receiver, securityCode):
+    result = True
+    smtpserver = "smtp.intel.com"
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = Header("Security Code[%s]" % securityCode, "utf-8")
+    html = """
+    <html>
+        <head>Security Code:</head>
+        <body>
+            <p><label><h4>%s</h4></label></p>
+        </body>
+    </html>
+    """ % securityCode
+    htm = MIMEText(html, 'html', 'utf-8')
+    msg.attach(htm)
+    smtp = smtplib.SMTP()
+    try:
+        smtp.connect(smtpserver)
+        smtp.sendmail(sender, receiver, msg.as_string())
+    except Exception as e:
+        result = False
+        farmer_log.error("%s" % e)
+    finally:
+        smtp.quit()
+    return result
+
 
 if __name__ == "__main__":
-    sendMail(mail_from, mail_to, "Hello world")
+    mail_from = sys.argv[1]
+    mail_to = sys.argv[2]
+    secCode = sys.argv[3]
+    send_security_code(mail_from, mail_to, secCode)
