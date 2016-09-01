@@ -13,12 +13,12 @@ Caffe_Source=$5
 nvprof=$6
 Caffe_BIN=""
 log_dir=""
-if [ "$Caffe_Source" = "upstream" ]; then 
+if [ "$Caffe_Source" = "bvlc" ]; then 
     echo "Use Upstream Caffe"
     Caffe_BIN="/home/caffe/bvlc_caffe_test/build/tools/caffe"
     log_dir="bvlc_caffe_log"
 else
-    echo "User NVidia Caffe"  
+    echo "Use NVidia Caffe"  
     Caffe_BIN="/home/caffe/nvidia_caffe_test/build/tools/caffe"
     log_dir="nvidia_caffe_log"
 fi;

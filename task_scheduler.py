@@ -115,9 +115,7 @@ class Task_Scheduler(object):
         execute(run_docker(container, image.repository, image.tag))
         test_workload = Caffe_Workload(container, request_id, request['profiling'])
         test_workload.copy()
-        results = test_workload.run_batch(request['topology'], request['iterations'], request['batch_size'], gpuid, request['raw_buffer'])
-        farmer_log.info(results)
-        farmer_log.info(request) 
+        results = test_workload.run_batch(request['topology'], request['iterations'], request['batch_size'], gpuid, request['raw_buffer'], request['source'])
         self.sql_wrapper.inert_item_in_request_reports(request_id, container,
            request["gpu_model"], request["email"], request["framework"],
            request["topology"], request["batch_size"], request["iterations"])
@@ -132,7 +130,7 @@ class Task_Scheduler(object):
                 result['source'],\
                 result['iterations'],\
                 result['score'],\
-                result['training images per second']
+                result['training_images_per_second']
             )
         execute(stop_docker(container))
         request["state"] = self.__class__.TASK_STATE.Finish
