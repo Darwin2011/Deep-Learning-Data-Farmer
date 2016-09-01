@@ -16,6 +16,9 @@ import hashlib
 import base64, uuid
 from resource_manager import Resource_Manager
 from task_manager import Task_Manager
+from mail_wrapper import *
+import string
+import threading
 
 def get_cookie_secret():
     return base64.b64encode(uuid.uuid4().bytes + uuid.uuid4().bytes)
@@ -28,12 +31,14 @@ def md5(password):
 def version():
     with os.popen("git log -1") as verObj:
         for line in verObj:
-            version = line[7:-2]
+            version = line[7:-1]
             return version
-    
+
+def generate_security_code(size=8, chars=string.ascii_uppercase + string.digits):
+    return ''.join(random.choice(chars) for _ in range(size))
 
 from tornado.options import define, options
-define('port', default=8001, help='run on the given port', type=int)
+define('port', default=8003, help='run on the given port', type=int)
 
 scheduler = Task_Scheduler()
 resMgr    = Resource_Manager()
@@ -114,8 +119,8 @@ class TestHistory(BaseHandler):
     @tornado.web.authenticated
     def get(self):
         page_num = int(self.get_argument("page"))
-        start_index = self.__class__.PAGE_SIZE * (page_num - 1)
-        count = self.__class__.PAGE_SIZE + 1
+        start_index = self.PAGE_SIZE * (page_num - 1)
+        count = self.PAGE_SIZE + 1
         request_reports_mediator = scheduler.sql_wrapper.get_request_reports(start_index, count)
         is_last_page = False
         if len(request_reports_mediator) < count:
@@ -123,10 +128,10 @@ class TestHistory(BaseHandler):
         else:
             is_last_page = False
             request_reports_mediator.pop()
-        self.render(self.__class__.test_history_html,\
+        self.render(self.test_history_html,\
                     request_reports = request_reports_mediator.to_request_objects(),\
-                    page = page_num,\
-                    is_last_page = is_last_page)
+                    page            = page_num,\
+                    is_last_page    = is_last_page)
 
 class TestResult(BaseHandler):
     test_result_html = 'template/test_result.html'
@@ -213,8 +218,8 @@ class TestSignUp(BaseHandler):
             self.render(self.sign_up_html)
     
     def post(self):
-        email    = self.get_argument('email')
         user     = self.get_argument('user')
+        email    = user + "@intel.com"
         password = self.get_argument('password')
         farmer_log.info("Sign up info: email[%s] user[%s] password[%s]" % (email, user, password))
         have_created = scheduler.create_account(user, password, email)
@@ -228,6 +233,32 @@ class TestSignOut(BaseHandler):
         self.clear_cookie("mail")
         self.clear_cookie("user_id")
         self.redirect("/sign_in")
+
+class MailSecurityCodeSender(BaseHandler):
+    @tornado.web.asynchronous
+    def get(self):
+        securityCode = generate_security_code()
+        farmer_log.info("securityCode [%s]" % securityCode)
+        self.set_secure_cookie("securityCode", md5(securityCode))
+        receiver = self.get_argument("user", "")
+        receiver += "@intel.com"
+        farmer_log.info("receiver [%s]" % receiver)
+        result = send_security_code("gpufarmer@intel.com", receiver, securityCode)
+        self.write(str(result))
+        self.finish()
+
+
+class MailValidated(BaseHandler):
+    @tornado.web.asynchronous
+    def get(self):
+        result = False
+        securityCodeInMail    = self.get_argument('securityCode', "")
+        securityCodeInCookies = self.get_secure_cookie('securityCode')
+        if md5(securityCodeInMail) == securityCodeInCookies:
+            result = True
+            self.clear_cookie('securityCode')
+        self.write(str(result))
+        self.finish()
 
 class ResultReportDownloader(BaseHandler):
     @tornado.web.authenticated
@@ -333,31 +364,33 @@ if __name__ == '__main__':
         "login_url"     : r"/sign_in"
     }
     app = tornado.web.Application(handlers = [
-        (r'/',             TestIndex),              \
-        (r'/sign_in',      TestSignIn),             \
-        (r'/sign_up',      TestSignUp),             \
-        (r'/test',         Test),                   \
-        (r'/tasksInfo',    TasksService),           \
-        (r'/tasks',        TestTasks),              \
-        (r'/dashboard',    TestDashboard),          \
-        (r'/request',      TestRequest),            \
-        (r'/status',       TestStatus),             \
-        (r"/result",       TestResult),             \
-        (r"/rawlog",       TestRawLogResponse),     \
-        (r"/rawlogbuffer", TestRawLogResponse),     \
-        (r"/accountRes",   AccountResponse),        \
-        (r"/signout",      TestSignOut),            \
-        (r"/requeststate", RequestState),           \
-        (r"/gpustate",     GPUState),               \
-        (r"/history",      TestHistory),            \
-        (r"/detail",       TestDetail),             \
-        (r"/binaries",     TestHPCBinaries),        \
-        (r"/hpc_download", HPCBinariesDownloader),  \
-        (r"/profile_download", ProfileDownloader),  \
-        (r'/download',     ResultReportDownloader), \
-        (r'/css/(.*)',     tornado.web.StaticFileHandler, {'path': 'template/css'}), \
-        (r'/js/(.*)',      tornado.web.StaticFileHandler, {'path': 'template/js'}), \
-        (r'/log/(.*)',     tornado.web.StaticFileHandler, {'path': './log'})
+        (r'/',                TestIndex),               \
+        (r'/sign_in',         TestSignIn),              \
+        (r'/sign_up',         TestSignUp),              \
+        (r'/test',            Test),                    \
+        (r'/tasksInfo',       TasksService),            \
+        (r'/tasks',           TestTasks),               \
+        (r'/dashboard',       TestDashboard),           \
+        (r'/request',         TestRequest),             \
+        (r'/status',          TestStatus),              \
+        (r"/result",          TestResult),              \
+        (r"/rawlog",          TestRawLogResponse),      \
+        (r"/rawlogbuffer",    TestRawLogResponse),      \
+        (r"/accountRes",      AccountResponse),         \
+        (r"/signout",         TestSignOut),             \
+        (r"/requeststate",    RequestState),            \
+        (r"/gpustate",        GPUState),                \
+        (r"/history",         TestHistory),             \
+        (r"/detail",          TestDetail),              \
+        (r"/binaries",        TestHPCBinaries),         \
+        (r"/hpc_download",    HPCBinariesDownloader),   \
+        (r"/profile_download", ProfileDownloader),      \
+        (r'/download',        ResultReportDownloader),  \
+        (r'/mail_validated',  MailValidated),           \
+        (r'/sec_code_sender', MailSecurityCodeSender),  \
+        (r'/css/(.*)',        tornado.web.StaticFileHandler, {'path': 'template/css'}), \
+        (r'/js/(.*)',         tornado.web.StaticFileHandler, {'path': 'template/js'}), \
+        (r'/log/(.*)',        tornado.web.StaticFileHandler, {'path': './log'})
     ], **settings)
     http_server = tornado.httpserver.HTTPServer(app)
     http_server.listen(options.port)

@@ -19,18 +19,44 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 <!-- js -->
 <script type="text/javascript" src="js/jquery-2.1.4.min.js"></script>
 <script>
+
+var password_check = false
+var mail_check = false
+var mail_auth_check = false
+
+function check_sumbit_condition()
+{
+    
+    if (password_check && mail_check && mail_auth_check)
+    {
+        document.getElementById("submit").disabled = false;
+    }
+}
+
 function validate()
 {
-    passwordElem = document.getElementById("password");
-    confirmElem = document.getElementById("confirm");
-    password = passwordElem.value;
-    confirm = confirmElem.value;
+     
+    var passwordElem = document.getElementById("password");
+    var confirmElem = document.getElementById("confirm");
+    var password = passwordElem.value;
+    var confirm = confirmElem.value;
+    if (password.length != confirm.length)
+    {
+        return;
+    }
     if (password != confirm)
     {
-        alert("The password and the confirmed password are not the same.");
+        document.getElementById("info").innerHTML = "The password and the confirmed password are not the same.";
         passwordElem.value = "";
         confirmElem.value = "";
         passwordElem.focus();
+        password_check = false;
+    }
+    else
+    {
+        document.getElementById("info").innerHTML = "The password and the confirmed password are the same.";
+        password_check = true;
+        check_sumbit_condition();
     }
 }
 
@@ -38,23 +64,84 @@ var user_request = new XMLHttpRequest();
 user_request.onreadystatechange = function(){
     if ((user_request.readyState == 4) && (user_request.status==200))
     {
-        res = user_request.responseText;
+        var res = user_request.responseText;
         if (res == 'True')
         {
+            mail_check = false;
            document.getElementById("info").innerHTML = "The email address have existed. Please type other user name";
         }
         else
         {
+           mail_check = true;
            document.getElementById("info").innerHTML = "The email address corrects.";
-        }  
+        }
+        check_sumbit_condition();
     }
 }
 
-function validate_mail(id){
-    mail = document.getElementById(id).value;
+var mail_request = new XMLHttpRequest();
+mail_request.onreadystatechange = function(){
+    if ((mail_request.readyState == 4) && (mail_request.status==200))
+    {
+        var res = mail_request.responseText;
+        if (res == 'True')
+        {
+           document.getElementById("info").innerHTML = "The security email have been sent. Please check your mailbox.";
+        }
+        else
+        {
+           document.getElementById("info").innerHTML = "Sending the security code have failed. Please try it later.";
+        }
+    }
+}
+
+function validate_mail(){
+    var user_name = document.getElementById("user_name").value;
+    mail_request.open("GET", "/sec_code_sender?user=" + user_name,  true);
+    mail_request.send();
+}
+
+var sec_code_checker = new XMLHttpRequest();
+sec_code_checker.onreadystatechange = function(){
+    if ((sec_code_checker.readyState == 4) && (sec_code_checker.status==200))
+    {
+        var res = sec_code_checker.responseText;
+        if (res == 'True')
+        {
+           mail_auth_check = true;
+           document.getElementById("info").innerHTML = "The security code corrects.";
+        }
+        else
+        {
+           mail_auth_check = false;
+           document.getElementById("info").innerHTML = "Please check your mailbox and type the right security code";
+        }
+        check_sumbit_condition();
+    }
+}
+
+function check_sec_code(){
+    var securityCode = document.getElementById("securityCode").value;
+    if (8 <= securityCode.length)
+    {
+        sec_code_checker.open("GET", "/mail_validated?securityCode=" + securityCode,  true);
+        sec_code_checker.send();
+    }
+}
+
+function validate_account(){
+    var mail = document.getElementById("mail").innerHTML;
     user_request.open("GET", "/accountRes?mail=" + mail,  true);
     user_request.send();
 }
+
+function generate_mail(){
+   var user_name = document.getElementById("user_name").value;
+   document.getElementById("mail").innerHTML = user_name + "@intel.com";
+}
+
+
+
 </script>
 <!-- //js -->
 <body>
@@ -74,30 +161,35 @@ function validate_mail(id){
                                     <div style="margin: 1em;">
                                     <label id="info" style="display: block"><h5>You haven't signned up. Please type the account informations.</h5></label>
                                     </div>
-									<div style="margin: 1em;">
-                                        <label style="display: block"><h4>Mail :</h4></label>
-									    <input id="mail" name="email"     type="text"     class="pretty-input" onchange="validate_mail(this.id)" />
-                                    </div>
                                     <div style="margin: 1em;">
                                         <label style="display: block"><h4>User :</h4></label>
-									    <input id="user_name" name="user" type="text" class="pretty-input"/>
+									    <input id="user_name" name="user" type="text" class="pretty-input" onchange="validate_account()" oninput="generate_mail()"/>
+                                    </div>
+									<div style="margin: 1em;">
+                                        <label style="display: block"><h4>Mail :</h4></label>
+									    <p id="mail" name="email" >@intel.com</p>
+                                        <button type="button" onclick="validate_mail()"><h4>validate mail</h4></button>
                                     </div>
                                     <div style="margin: 1em;">
-                                        <label style="display: block"><h4>Password :</h4></label>
+                                        <label style="display: block"><h4>Mail Security Code:</h4></label>
+									    <input id="securityCode" name="securityCode" type="text" oninput="check_sec_code()" class="pretty-input" />
+                                    </div>
+                                    <div style="margin: 1em;">
+                                        <label style="display: block"><h4>Password :(Please do not use important password!)</h4></label>
 									    <input id="password" name="password" type="password" class="pretty-input" />
                                     </div>
                                     <div style="margin: 1em;">
                                         <label style="display: block"><h4>Confirm Password :</h4></label>
-									    <input id="confirm" name="confirm" type="password" class="pretty-input" onblur="validate()"/>
+									    <input id="confirm" name="confirm" type="password" class="pretty-input" oninput="validate()"/>
                                     </div>
                                     <div style="margin: 1em;">
-                                        <input type="submit" value="Login">
+                                        <input id="submit" type="submit" value="sign up" disabled/>
                                     </div>
                             </div>
                         </form>
                         <hr />
                         <div style="margin: 1em;">
-                            <input type="submit" value="sign in" onclick="location.href='/sign_in'"/>
+                            <input type="submit" value="sign in" onclick="location.href='/sign_in'" />
                         </div>
                     </div>
                 </div>
