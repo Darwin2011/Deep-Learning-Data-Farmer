@@ -57,14 +57,15 @@ user_request.onreadystatechange = function(){
         var res = user_request.responseText;
         if (res == 'True')
         {
-            mail_check = false;
+           mail_check = false;
            document.getElementById("info").innerHTML = "The email address have existed. Please type other user name";
-           
+           document.getElementById("validateEmail").disabled = true;
         }
         else
         {
            mail_check = true;
-           document.getElementById("info").innerHTML = "The email address corrects.";
+           document.getElementById("info").innerHTML = "The email address is unused.";
+           document.getElementById("validateEmail").disabled = false;
         }
     }
 }
@@ -176,7 +177,7 @@ function validate_submit()
 									<div style="margin: 1em;">
                                         <label style="display: block"><h4>Mail :</h4></label>
 									    <p id="mail" name="email" >@intel.com</p>
-                                        <button type="button" onclick="validate_mail()"><h4>validate mail</h4></button>
+                                        <button id="validateEmail" type="button" onclick="validate_mail()"><h4>validate mail</h4></button>
                                     </div>
                                     <div style="margin: 1em;">
                                         <label style="display: block"><h4>Mail Security Code:</h4></label>
