@@ -20,18 +20,9 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 <script type="text/javascript" src="js/jquery-2.1.4.min.js"></script>
 <script>
 
-var password_check = false
-var mail_check = false
-var mail_auth_check = false
-
-function check_sumbit_condition()
-{
-    
-    if (password_check && mail_check && mail_auth_check)
-    {
-        document.getElementById("submit").disabled = false;
-    }
-}
+var password_check = false;
+var mail_check = false;
+var mail_auth_check = false;
 
 function validate()
 {
@@ -56,7 +47,6 @@ function validate()
     {
         document.getElementById("info").innerHTML = "The password and the confirmed password are the same.";
         password_check = true;
-        check_sumbit_condition();
     }
 }
 
@@ -69,13 +59,13 @@ user_request.onreadystatechange = function(){
         {
             mail_check = false;
            document.getElementById("info").innerHTML = "The email address have existed. Please type other user name";
+           
         }
         else
         {
            mail_check = true;
            document.getElementById("info").innerHTML = "The email address corrects.";
         }
-        check_sumbit_condition();
     }
 }
 
@@ -116,7 +106,6 @@ sec_code_checker.onreadystatechange = function(){
            mail_auth_check = false;
            document.getElementById("info").innerHTML = "Please check your mailbox and type the right security code";
         }
-        check_sumbit_condition();
     }
 }
 
@@ -138,9 +127,28 @@ function validate_account(){
 function generate_mail(){
    var user_name = document.getElementById("user_name").value;
    document.getElementById("mail").innerHTML = user_name + "@intel.com";
+   mail_auth_check = false;
 }
 
-
+function validate_submit()
+{
+   if (!password_check)
+   { 
+      document.getElementById("info").innerHTML = "The password check failure.";
+      return false;
+   } 
+   if (!mail_check)
+   {
+      document.getElementById("info").innerHTML = "Please enter the unregisted intel email.";
+      return false;
+   }
+   if (!mail_auth_check)
+   {
+      document.getElementById("info").innerHTML = "Please check intel email security code.";
+      return false;
+   }
+   return true;
+}
 
 </script>
 <!-- //js -->
@@ -155,7 +163,7 @@ function generate_mail(){
 			<div class="main-section">
 				<div class="property-section">
 					<div class="property-bottom">
-						<form action="#" method="post">
+						<form id="signUp" action="#" method="post" onsubmit="return validate_submit();">
 	                        {% raw xsrf_form_html() %}	
     						<div class="select-section">
                                     <div style="margin: 1em;">
@@ -183,7 +191,7 @@ function generate_mail(){
 									    <input id="confirm" name="confirm" type="password" class="pretty-input" oninput="validate()"/>
                                     </div>
                                     <div style="margin: 1em;">
-                                        <input id="submit" type="submit" value="sign up" disabled/>
+                                        <input id="submit" type="submit" value="sign up" />
                                     </div>
                             </div>
                         </form>
