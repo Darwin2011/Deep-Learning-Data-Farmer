@@ -3,6 +3,7 @@ import os
 import re
 import sys
 import pandas
+from collections import OrderedDict
 from cmd_generator import *
 from subprocess import Popen, PIPE, STDOUT
 from abc import ABCMeta, abstractmethod
@@ -16,9 +17,23 @@ class Workload(object):
         self.nvprof = nvprof
 
 
+    def make_empty_result(self):
+        result = {}
+        keys = ['framework', 'topology', 'batch_size', 'source', 'iterations', 'score', 'training_images_per_second']
+        for key in keys:
+            result[key] = None
+        result['forward_timing'] = OrderedDict()
+        result['backward_timing'] = OrderedDict()
+        return result
+            
     def sudo_docker_wrapper(self, command):
         return 'sudo docker exec %s %s' % (self.container, command)
-    
+
+    @abstractmethod
+    def parse_from_log(self, lines):
+        pass
+
+ 
 
 class Caffe_Workload(Workload):
 
@@ -33,8 +48,8 @@ class Caffe_Workload(Workload):
         'googlenet' : (32, 1), \
         'vgg_19' : (32, 1)
     }
-
-    source = ["upstream", "nvidia"]
+    # Workaround fix.
+    source = ["bvlc caffe", "nvidia caffe"]
 
     topology = { \
         'alexnet_group1' : 'alexnet_group1.prototxt', \
@@ -48,7 +63,6 @@ class Caffe_Workload(Workload):
 
     def __init__(self, container, request_id, nvprof):
         super(Caffe_Workload, self).__init__(container, request_id, nvprof)
-
 
     def make(self):
         pass
@@ -71,7 +85,7 @@ class Caffe_Workload(Workload):
         pass
 
 
-    def run_batch(self, topologies, iterations, batch_size, gpuid, raw_buffer):
+    def run_batch(self, topologies, iterations, batch_size, gpuid, global_buffer, source):
         results = []
         for topology in topologies:
             if batch_size == 0:
@@ -79,14 +93,43 @@ class Caffe_Workload(Workload):
             else:
                 bzs = [batch_size, ]
             for bz in bzs:
-                for source in self.__class__.source:
-                    result_item = self.run_specific_config(topology, iterations, bz, gpuid, source, raw_buffer)
-                    results.append(result_item)
+                result_item = self.run_specific_config(topology, iterations, bz, gpuid, source, global_buffer)
+                results.append(result_item)
         if (self.nvprof):
             self.get_log()
         return results
-             
-    def run_specific_config(self, topology, iterations, batch_size, gpuid, caffe_source, raw_buffer):
+
+
+    def parse_from_log(self, lines, result):
+        for line in lines:
+            # Get Average Forward Pass Time
+            m = re.match('.*Average Forward pass.*', line.strip())
+            if m is not None:
+                result['Average Forward pass'] = float(line.split(' ')[-2])
+                continue
+            # Get Average Backward Pass Time
+            m = re.match('.*Average Backward pass.*', line.strip())
+            if m is not None:
+                result['Average Backward pass'] = float(line.split(' ')[-2])
+                continue
+            m = re.match(r"(.*)\](.*)forward:(.*)ms", line)
+            if m is not None:
+                layer_name = m.group(2).strip()
+                timing = float(m.group(3).strip())
+                result['forward_timing'][layer_name] = timing
+                continue
+            m = re.match(r"(.*)\](.*)backward:(.*)ms", line)
+            if m is not None:
+                layer_name = m.group(2).strip()
+                timing = float(m.group(3).strip())
+                result['backward_timing'][layer_name] = timing
+                continue
+        result['score'] = 1000.0 * result['batch_size'] / result['Average Forward pass'] 
+        result['training_images_per_second'] = 1000.0 * result['batch_size'] / (result['Average Backward pass'] + result['Average Forward pass'])
+        return result 
+
+ 
+    def run_specific_config(self, topology, iterations, batch_size, gpuid, caffe_source, global_buffer):
         '''
             
 	        Args:
@@ -98,49 +141,27 @@ class Caffe_Workload(Workload):
             Returns:
                 ret performance metrics 
         '''
-	
-        result = {}
+        result = self.make_empty_result()
         result['framework'] = 'Caffe'
         result['topology'] = topology
         result['batch_size'] = batch_size
         result['source'] = caffe_source
         result['iterations'] = iterations
-        if topology in self.__class__.topology.keys():
-            template = os.path.join(self.__class__.docker_caffe_bench, self.__class__.middle_dir , self.__class__.topology[topology])
-            command = '%s %s %d %d %d %s' % (self.__class__.docker_run_script, template, batch_size, iterations, gpuid, caffe_source)
-            command = self.sudo_docker_wrapper(command)
-            fp = Popen(command, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-            while True:
-                line = fp.stdout.readline()
-                raw_buffer.extend(line)
-                m = re.match('.*Average Forward pass.*', line.strip())
-                if m is not None:
-                    result['Average Forward pass'] = float(line.split(' ')[-2])
-                m = re.match('.*Average Backward pass.*', line.strip())
-                if m is not None:
-                    result['Average Backward pass'] = float(line.split(' ')[-2])
-                if line == '' and fp.poll() != None:
-                    break
-            result['score'] = 1000.0 * batch_size / result['Average Forward pass'] 
-            result['training images per second'] = 1000.0 * batch_size / (result['Average Backward pass'] + result['Average Forward pass'])
+        assert(topology in self.__class__.topology.keys())
+        template = os.path.join(self.__class__.docker_caffe_bench, self.__class__.middle_dir , self.__class__.topology[topology])
+        command = '%s %s %d %d %d %s' % (self.__class__.docker_run_script, template, batch_size, iterations, gpuid, caffe_source)
+        command = self.sudo_docker_wrapper(command)
+        local_buffer = []
+        fp = Popen(command, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+        while True:
+            line = fp.stdout.readline()
+            global_buffer.extend(line)
+            local_buffer.append(line) 
+            if line == '' and fp.poll() != None:
+                break
+        self.parse_from_log(local_buffer, result)
         return result
     
-    def merge_result(self, result1, result2):
-        if result1['topology'] == result2['topology'] and \
-            result1['batch_size'] == result2['batch_size'] and \
-            result1['iterations'] == result2['iterations'] and \
-            result1['source'] != result2['source'] :
-            result1[result1['source'] + ' score'] = result1['score']
-            result1[result1['source'] + ' training images per second'] = result1['training images per second']
-            result2[result2['source'] + ' score'] = result2['score']
-            result2[result2['source'] + ' training images per second'] = result2['training images per second']
-            updated_result = result1.copy()
-            updated_result.update(result2)
-            del updated_result['source']
-            return updated_result    
-        return None
-
-
 if __name__ == '__main__':
     cw = Caffe_Workload(sys.argv[1])
     cw.copy()
