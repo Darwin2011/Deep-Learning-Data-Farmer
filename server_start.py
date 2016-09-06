@@ -38,7 +38,7 @@ def generate_security_code(size=8, chars=string.ascii_uppercase + string.digits)
     return ''.join(random.choice(chars) for _ in range(size))
 
 from tornado.options import define, options
-define('port', default=8005, help='run on the given port', type=int)
+define('port', default=8000, help='run on the given port', type=int)
 
 scheduler = Task_Scheduler()
 resMgr    = Resource_Manager()
@@ -79,7 +79,7 @@ class TestRequest(BaseHandler):
         self.__class__.request_id += 1
         self.__class__.lock.release() 
         options = {}
-        options['email']      = self.get_argument('email')
+        options['email']      = self.get_secure_cookie("mail")
         batch_size            = self.get_argument('batch_size')
         options['batch_size'] = 0 if batch_size == 'auto' else batch_size
         options['iterations'] = self.get_argument('iterations')
