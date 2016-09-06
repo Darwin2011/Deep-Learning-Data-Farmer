@@ -23,6 +23,7 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 var password_check = false;
 var mail_check = false;
 var mail_auth_check = false;
+var mail_format_check = false;
 
 function validate()
 {
@@ -64,8 +65,8 @@ user_request.onreadystatechange = function(){
         else
         {
            mail_check = true;
-           document.getElementById("info").innerHTML = "The email address is unused.";
            document.getElementById("validateEmail").disabled = false;
+           document.getElementById("info").innerHTML = "The email address is unused.";
         }
     }
 }
@@ -129,10 +130,29 @@ function generate_mail(){
    var user_name = document.getElementById("user_name").value;
    document.getElementById("mail").innerHTML = user_name + "@intel.com";
    mail_auth_check = false;
+   
+   reg = /^[a-zA-Z0-9_\-\.]+$/;
+   result = user_name.match(reg);
+   if (result == null)
+   {
+       mail_format_check = false;
+       document.getElementById("info").innerHTML = "Please use the valid user name.";
+       document.getElementById("validateEmail").disabled = true;
+   }
+   else
+   {
+       mail_format_check = true;
+       validate_account();
+   }
 }
 
 function validate_submit()
 {
+   if (!mail_format_check)
+   {   
+      document.getElementById("info").innerHTML = "Please check the intel user name.";
+      return false;
+   }
    if (!password_check)
    { 
       document.getElementById("info").innerHTML = "The password check failure.";
@@ -172,7 +192,7 @@ function validate_submit()
                                     </div>
                                     <div style="margin: 1em;">
                                         <label style="display: block"><h4>User :</h4></label>
-									    <input id="user_name" name="user" type="text" class="pretty-input" onchange="validate_account()" oninput="generate_mail()"/>
+									    <input id="user_name" name="user" type="text" class="pretty-input" oninput="generate_mail()"/>
                                     </div>
 									<div style="margin: 1em;">
                                         <label style="display: block"><h4>Mail :</h4></label>
