@@ -243,7 +243,7 @@ class MailSecurityCodeSender(BaseHandler):
         receiver = self.get_argument("user", "")
         receiver += "@intel.com"
         farmer_log.info("receiver [%s]" % receiver)
-        result = send_security_code("gpufarmer@intel.com", receiver, securityCode)
+        result = send_security_code("DPM@intel.com", receiver, securityCode)
         self.write(str(result))
         self.finish()
 
