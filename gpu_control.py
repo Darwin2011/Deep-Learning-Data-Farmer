@@ -238,6 +238,13 @@ class GPUDevice(object):
         temperature = int(fp.read().strip())
         return temperature
 
+    def get_gpu_power(self):
+        command = "nvidia-smi -i %d -q -d POWER | grep -i 'draw' | awk '{print $(NF-1)}'" % (self.gpuid, )
+        fp = os.popen(self.sudo_wrapper(command))
+        power = float(fp.read().strip())
+        return power
+
+
     def response_status_as_json(self, request):
         status = {}
         status['gpu_model'] = self.gpu_model
@@ -250,9 +257,11 @@ class GPUDevice(object):
         status['mem_utilization'] = "%.2f" % self.get_memory_utilization()
         status['core_freq_ratio'] = int(100.0 * status['instant_core_freq'] / status['application_core_freq'])
         status['temperature'] = self.get_gpu_temperature()
+        status['power'] = self.get_gpu_power()
         if request is not None:
             request['history_freq'].append(status['instant_core_freq'])
             request['history_temperature'].append(status['temperature'])
+            request['history_power'].append(status['power'])
         return json.dumps(status) 
         
     

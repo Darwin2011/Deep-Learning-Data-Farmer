@@ -62,6 +62,7 @@ class Task_Scheduler(object):
         request['gpu_device'] = gpu_device
         request['history_temperature'] = []
         request['history_freq'] = []
+        request['history_power'] = []
         request['raw_buffer'] = bytearray()
         return request 
 
