@@ -21,7 +21,7 @@ class Task_Scheduler(object):
     TASK_STATE = Enum("Pendding", "Running", "Finish")
     
     def __init__(self):
-        self.sql_wrapper    = Mysql_wrapper('localhost', 'root', 'tracing', 'automations')
+        self.sql_wrapper    = Mysql_wrapper('localhost', 'root', 'tracing', 'automations_test')
         self.docker_control = Docker_Monitor()
         self.gpu_monitor    = GPUMonitor()
         self.gpu_monitor.init_local_gpu_lists()
