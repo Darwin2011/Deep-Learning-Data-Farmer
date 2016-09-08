@@ -41,7 +41,9 @@ class XMLParser(object):
     def update_as_rules(self):
         if self.config_dicts['framework'] == 'bvlc caffe' or self.config_dicts['framework'] == 'nvidia caffe':
             self.config_dicts['source'] = self.config_dicts['framework'].split('_')[0]
-            self.config_dicts['framework'] = ['caffe', ]
+            self.config_dicts['framework'] = 'caffe'
+        else:
+            self.config_dicts['source'] = 'default'
         if self.config_dicts['batch_size'] == 'default':
             self.config_dicts['batch_size'] = 0
         self.config_dicts['batch_size'] = int(self.config_dicts['batch_size'])
@@ -57,8 +59,7 @@ class XMLParser(object):
         self.config_dicts['profiling'] = True if self.config_dicts['profiling'] == 'true' else False
         self.config_dicts['tensorflow'] = False
         self.config_dicts['caffe'] = False
-        for fw in self.config_dicts['framework']:
-            self.config_dicts[fw] = True
+        self.config_dicts[self.config_dicts['framework']] = True
 
 if __name__ == "__main__":
     xmlparser = XMLParser('/tmp/1.xml')

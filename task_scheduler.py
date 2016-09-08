@@ -5,7 +5,7 @@ import workload
 from xml_parser import *
 from MySql_wrapper import Mysql_wrapper
 from cmd_generator import *
-from workload import Caffe_Workload
+from workload import * 
 import pandas
 import cmd_generator
 import time
@@ -21,7 +21,7 @@ class Task_Scheduler(object):
     TASK_STATE = Enum("Pendding", "Running", "Finish")
     
     def __init__(self):
-        self.sql_wrapper    = Mysql_wrapper('localhost', 'root', 'tracing', 'automations')
+        self.sql_wrapper    = Mysql_wrapper('localhost', 'root', 'tracing', 'automations_test')
         self.docker_control = Docker_Monitor()
         self.gpu_monitor    = GPUMonitor()
         self.gpu_monitor.init_local_gpu_lists()
@@ -98,7 +98,20 @@ class Task_Scheduler(object):
     
     def request_runnable(self, request):
         return False if request['gpu_device'].blocked else True
-       
+    
+    def workload_run(self, container, request):
+        gpuid = request['gpu_id']
+        request_id = request['request_id']
+        gpuid = 1
+        test_workload = None
+        print(request['framework'])
+        if request['framework'] == 'caffe':
+            test_workload = Caffe_Workload(container, request['request_id'], request['profiling'])
+        else:
+            test_workload = Tensorflow_Workload(container, request['request_id'], request['profiling']) 
+        test_workload.copy()
+        results = test_workload.run_batch(request['topology'], request['iterations'], request['batch_size'], gpuid, request['raw_buffer'], request['source'])
+        return results; 
  
     def test_start(self, request):
         index = self.docker_control.get_image_index(request['cuda_string'], request['cudnn_string'], request['caffe'], request['tensorflow'])
@@ -108,15 +121,11 @@ class Task_Scheduler(object):
             # TODO
             # docker control inert docker_image_info into database
             index = self.docker_control.get_image_index(request['cuda_string'], request['cudnn_string'], request['caffe'], request['tensorflow'])
-        gpuid = request['gpu_id']
-        gpuid = 1
         request_id = request['request_id']
         image = self.docker_control.get_image(index)
         container = get_random_container()
         execute(run_docker(container, image.repository, image.tag))
-        test_workload = Caffe_Workload(container, request_id, request['profiling'])
-        test_workload.copy()
-        results = test_workload.run_batch(request['topology'], request['iterations'], request['batch_size'], gpuid, request['raw_buffer'], request['source'])
+        results = self.workload_run(container, request)
         self.sql_wrapper.inert_item_in_request_reports(request_id, container,
            request["gpu_model"], request["email"], request["framework"],
            request["topology"], request["batch_size"], request["iterations"])
@@ -133,7 +142,7 @@ class Task_Scheduler(object):
                 result['score'],\
                 result['training_images_per_second']
             )
-        execute(stop_docker(container))
+        #execute(stop_docker(container))
         request["state"] = self.__class__.TASK_STATE.Finish
         return True
 
