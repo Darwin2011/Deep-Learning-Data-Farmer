@@ -38,7 +38,7 @@ def generate_security_code(size=8, chars=string.ascii_uppercase + string.digits)
     return ''.join(random.choice(chars) for _ in range(size))
 
 from tornado.options import define, options
-define('port', default=8005, help='run on the given port', type=int)
+define('port', default=8888, help='run on the given port', type=int)
 
 scheduler = Task_Scheduler()
 resMgr    = Resource_Manager()
