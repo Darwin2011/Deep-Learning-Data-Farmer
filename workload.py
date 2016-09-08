@@ -103,7 +103,6 @@ class Workload(object):
         result['iterations'] = iterations
         assert(topology in self.__class__.topology.keys())
         command = self.sudo_docker_wrapper(self.generate_run_comamnd(topology, iterations, batch_size, gpuid, source))
-        print(command)
         local_buffer = []
         fp = Popen(command, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
         while True:
@@ -149,8 +148,8 @@ class Tensorflow_Workload(Workload):
             if m is not None:
                 result['Average Pass'] = float(m.group(3))
                 continue
-        result['score'] = 1.0 * result['batch_size'] / result['Average Forward Pass'] 
-        result['training_images_per_second'] = 1.0 * result['batch_size'] / result['Average Pass'] 
+        result['score'] = 1.0 * result['batch_size'] / (result['Average Forward Pass'] + sys.float_info.epsilon)
+        result['training_images_per_second'] = 1.0 * result['batch_size'] / (result['Average Pass'] + sys.float_info.epsilon)
         return result 
         
     def generate_run_comamnd(self, topology, iterations, batch_size, gpuid, source):
@@ -211,8 +210,8 @@ class Caffe_Workload(Workload):
                 timing = float(m.group(3).strip())
                 result['backward_timing'][layer_name] = timing
                 continue
-        result['score'] = 1000.0 * result['batch_size'] / result['Average Forward pass'] 
-        result['training_images_per_second'] = 1000.0 * result['batch_size'] / (result['Average Backward pass'] + result['Average Forward pass'])
+        result['score'] = 1000.0 * result['batch_size'] / (result['Average Forward pass'] + sys.float_info.epsilon) 
+        result['training_images_per_second'] = 1000.0 * result['batch_size'] / (result['Average Backward pass'] + result['Average Forward pass'] + sys.float_info.epsilon)
         return result 
 
     def generate_run_comamnd(self, topology, iterations, batch_size, gpuid, source):
