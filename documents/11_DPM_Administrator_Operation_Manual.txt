@@ -43,4 +43,23 @@ automations')
 	open chrome, tpye in "http://DPMSystem.sh.intel.com:8000" to see if the web 
 	page could be showed correctly.
 
+Some notes about environment:
+1.Enum version must be lower version 0.46, higher version will cause error: TypeError: issubclass() arg 1 must be a class
+	pip install https://pypi.python.org/packages/source/e/enum/enum-0.4.6.tar.gz
+2.Docker must be installed.
+
+How to add a new docker image?
+1.Supose you have get a new docker image file from Dai,Yan. (~ 4G)
+2.Check current docker image
+	docker images
+3.Add this new docker image
+	docker load -i image_path_name
+4.Check status
+	docker images
+5.Add this docker image information into database
+	INSERT INTO docker_images (REPOSITORY, TAG,\
+             CUDA_VERSION, CUDA_VERSION_STRING, CUDNN_VERSION,\
+             CUDNN_VERSION_STRING, TENSORFLOW, CAFFE) \
+             VALUES("%s", "%s", %f, "%s", %f, "%s", %d, %d);
+
 
