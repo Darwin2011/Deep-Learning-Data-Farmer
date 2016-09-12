@@ -1,0 +1,66 @@
+DPM is deep learning performance management system. This system could release
+resources from all kinds of performance testing work and organized those
+works into a high efficiency and accurate methodology, with organized profiling data 
+collection, it also could provide the unlimited possibility of data mining
+for finding performance bottleneck and key strike.
+
+
+
+DPM System should include below parts:
+
+C1 每Control system for Test automation
+	C1-A Web Monitor sub-system
+	C1-B Excel report export sub-system
+	C1-C Data visualization sub-system
+	C1-D Data comparing sub-system
+	C1-E Database scheme, SQL, store procedure
+	C1-F User management system
+	C1-G Data repository
+	C1-H Audit system
+C2 每 Distributed automation test framework
+	C2-A Test configuration sub-system
+	C2-B Performance profiling engine for MCard
+	C2-C Performance profiling engine for PCard
+	C2-D Power profiling engine for MCard
+	C2-E Power profiling engine for PCard
+	C2-F Frequency monitor system for MCard
+	C2-G Frequency monitor system for PCard
+	C2-H remote communication module
+	C2-I Resource manager
+	C2-J Task dispatcher
+	C2-K Task scheduler
+	C2-L Task migration
+	C2-M health check module
+	C2-N distributed framework bootstrap module
+	C2-O feature for high availability
+C3 每 HPC Test case enabling
+	C3-A SGEMM for P FP32
+	C3-B HGEMM for P FP16
+	C3-C DGEMM for P FP64
+	C3-D SLINPACK for P FP32
+	C3-E DLINPACK for P FP64
+	C3-F FFT2D for P FP32
+	C3-G FFT2D for P FP64
+C4 每 DL Test case enabling
+	C4-A Caffe
+		C4-A1 AlexNet
+		C4-A2 GoogleNet
+		C4-A3 ResNet
+		C4-A4 VGG
+	C4-B TensorFlow
+		C4-B1 AlexNet
+		C4-B2 GoogleNet
+		C4-B3 ResNet
+		C4-B4 VGG
+	C4-C Torch
+		C4-C1 AlexNet
+		C4-C2 GoogleNet
+		C4-C3 ResNet
+		C4-C4 VGG
+	C4-D Theano
+		C4-D1 AlexNet
+		C4-D2 GoogleNet
+		C4-D3 ResNet
+		C4-D4 VGG
+	C4-E Neon
+	C4-F MxNet?

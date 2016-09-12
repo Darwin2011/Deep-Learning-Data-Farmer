@@ -1,0 +1,46 @@
+DPM Administrator Guide:
+
+How to get DPMSystem.sh.intel.com:8000 updated?
+
+(8000 is formal on line port, only DPM Administrator could use it.
+ Developers please use other port like 8888, 8005 etc for test.)
+
+1.Enter DPM formal on line code directory
+
+    cd /home/daiyan/zongrui/GPU-Test-Farmer-Online/GPU-Test-Farmer
+
+    ps: It could be other path, but be aware that the file inside ./HPC_binaries is 
+    not in git hub, so if you want to move GPU-Test-Farmer-Online, please copy
+    the files inside ./HPC_binaries to the new folder as well.
+
+2.Remove all changes in current version
+
+    git reset --hard HEAD
+
+3.Get latest code change
+
+    git pull
+
+4.Should use database automation, not database automation_test.
+
+	vi task_scheduler.py
+
+	-        self.sql_wrapper    = Mysql_wrapper('localhost', 'root', 'tracing', '
+automations_test')
+
+	+        self.sql_wrapper    = Mysql_wrapper('localhost', 'root', 'tracing', '
+automations')
+
+5.Check the change
+
+	git diff
+
+6. Make this server on line
+
+	sudo nohup python server_start.py --port=8000
+
+7. Check the final web site
+	open chrome, tpye in "http://DPMSystem.sh.intel.com:8000" to see if the web 
+	page could be showed correctly.
+
+
