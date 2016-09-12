@@ -1,0 +1,90 @@
+DPM Developer Guide:
+
+(8000 is formal on line port, only DPM Administrator could use it.
+ Developers please use other port like 8888, 8005 etc for test.)
+
+1.Create a new folder
+	make personal_dpm_test_version
+	cd personal_dpm_test_version
+
+2.Get code for git hub
+	git clone https://github.com/Darwin2011/GPU-Test-Farmer.git
+
+	or Get latest code change
+    git pull
+
+3.Do you modification and check your code
+    git diff
+
+4.Check which port is not been used
+    ps -aux | grep python
+
+5.Verify your modification
+
+	sudo python server_start.py --port=8003
+	open chrome, tpye in "http://DPMSystem.sh.intel.com:8000" to see if the web
+	page could be showed correctly.
+
+6.Commit your code
+	git commit -s -a (write some comments)
+
+7.push your code to the git hub, so others could get your code
+	git push origin master
+	enter github username
+	enter github password
+
+If you do not have a github account, please go to github and register one.
+also you need to ask Daiyan to invite your into the github-DPMSystem working
+group, and you need to accept that invitation from email link.
+
+
+Other useful command
+1.Abandon current change
+	git reset --hard HEAD
+2.Add some new change to the latest commit
+	git commit --amend
+3.Check the content of one commit
+	git show commitid
+4.Check currently git history
+	git log
+5.Set current git user info
+	git config user.name "aaa"
+	git config user.email "aaa.bbb@intel.com"
+6.Kill current test server
+	ps -aux | grep python
+
+
+	root     172392  0.0  0.0  86240  2668 ?        S    Sep08   0:00 sudo nohup
+python server_start.py --port=8000
+
+	root     172393  0.0  0.0 3476044 46940 ?       Sl   Sep08   0:10 python
+server_start.py --port=8000
+
+	root     241495  0.0  0.0  86544  2904 pts/70   S+   03:11   0:00 sudo python
+server_start.py --port=8192
+
+	root     241496 18.8  0.0 3403880 44212 pts/70  Sl+  03:11   0:06 python
+server_start.py --port=8192
+
+	tracing  241632  0.0  0.0  10468   940 pts/29   S+   03:11   0:00 grep --color
+=auto python
+
+	kill 241495 or kill -9 241495  (please do not kill port=8000's PID)
+
+
+Database operation:
+1.mysql -uroot -p
+2.(password): tracing
+3.show databases;
+4.use automations_test; (the formal on line version is use automations)
+5.show tables;
+
+6.select * from accounts;
+7.delete from accounts where id = {id};
+
+How to make database could be access from remote machine:
+1.change mysql user table's host item, from "localhost" to "%"
+  update user set Host = '%' where User = 'root' and Host = 'localhost';
+  sudo /etc/init.d/mysql stop
+  sudo /etc/init.d/mysql start
+2.iptables -I INPUT -p tcp --dport 3306 -j ACCEPT
