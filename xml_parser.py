@@ -21,8 +21,8 @@ Target XML Format
 
 class XMLParser(object):
 
-    cudnn_strings = {'5.0' : 'cudnn-7.5-linux-x64-v5.0-rc'}  
-    cuda_strings = {'7.5' : 'cuda_7.5.18'}  
+    cudnn_strings = {'5.0' : 'cudnn-7.5-linux-x64-v5.0-rc', '5.1' : 'cudnn-8.0-linux-x64-v5.1-rc'}
+    cuda_strings = {'7.5' : 'cuda_7.5.18', '8.0' : 'cuda_8.0.27'}
 
     def __init__(self, filePath):
         self.filepath = filePath
